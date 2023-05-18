@@ -23,14 +23,14 @@ Rendering:
                 solutions:
                     1. higher resolution -> multiple pixels per each final pixel
                     2. a point that was erased last frame can only be drawn if the target pixel is empty (erasures must be saved to some buffer)
-                    3. each pixel is an array (3D texture & int texture for length) -> multiple slots per pixel  ??How do you parallelize the length??
+                    3. each pixel is an array (3D texture & int texture for length) -> multiple slots per pixel, length parallelized with atomics
         erase pass:
             tetrahedrons are rendered
             tetrahedron fragment:
                 if a point of a line has been drawn here, do a software oclusion test. Erase if the point is ocluded
 
 Controls:
-    Jump and crouch (up is still an axis)
+    Jump and crouch with space and shift (up is still an axis)
     Walking with QWEASD:
         one forward axis
         two sideways axes

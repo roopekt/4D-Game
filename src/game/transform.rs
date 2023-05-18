@@ -3,16 +3,14 @@ use glam::{Vec3, Quat, Mat4};
 pub struct Transform {
     pub position: Vec3,
     pub orientation: Quat,
-    pub scale: Vec3,
-    pub origin_room_id: u32//the room the origin of the represented object is in
+    pub scale: Vec3
 }
 
 impl Transform {
     pub const IDENTITY: Self = Self {
         position: Vec3::ZERO,
         orientation: Quat::IDENTITY,
-        scale: Vec3::ONE,
-        origin_room_id: u32::MAX
+        scale: Vec3::ONE
     };
 
     pub fn as_matrix(&self) -> Mat4 {

@@ -1,0 +1,41 @@
+Rendering:
+    End result:
+        lines in a 4D view frustum, only non-ocluded shown
+            color coding based on angle from the slice plane
+                fully saturated = on the plane
+                white = above
+                black = below
+        "background" color from rendering of a 3D slice
+        some sort of perspective
+    Slice rendering:
+        vertex shader transforms vertices
+        geometry shader:
+            takes in 4 vertices (lines_adjacency) representing a tetrahedron
+            intersects all edges with the slice plane
+            mapps the 3 intersections to 3D space
+            outputs the 3 intersections as a triangle
+        a standard fragment stage
+    Line rendering:
+        draw pass:
+            hardware line rendering of color & world position
+            extra frustum culling done per fragment
+            potential problem when an ocluded fragemnt is drawn on top of a non-ocluded fragment
+                solutions:
+                    1. higher resolution -> multiple pixels per each final pixel
+                    2. a point that was erased last frame can only be drawn if the target pixel is empty (erasures must be saved to some buffer)
+                    3. each pixel is an array (3D texture & int texture for length) -> multiple slots per pixel  ??How do you parallelize the length??
+        erase pass:
+            tetrahedrons are rendered
+            tetrahedron fragment:
+                if a point of a line has been drawn here, do a software oclusion test. Erase if the point is ocluded
+
+Controls:
+    Jump and crouch (up is still an axis)
+    Walking with QWEASD:
+        one forward axis
+        two sideways axes
+    Rotation:
+        4D euler angles: https://www.research.kobe-u.ac.jp/csi-viz/members/kageyama/docs/150629_euler_angles_in4d.pdf
+        up & down with scroll wheel, clamped
+        two angles from the mouse movement
+        no rotations that don't change the forward vector

@@ -1,0 +1,12 @@
+{
+    "graphics":
+    {
+        "fov": 30,
+        "near_plane": 0.1,
+        "far_plane": 500
+    },
+    "player":
+    {
+        "walking_speed": 2
+    }
+}

@@ -1,0 +1,11 @@
+{
+    "graphics":
+    {
+        "default_resolution": [600, 400],
+        "max_fps": 60
+    },
+    "input":
+    {
+        "mouse_sensitivity": 0.01
+    }
+}

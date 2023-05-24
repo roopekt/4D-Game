@@ -1,10 +1,9 @@
 pub mod mesh;
-pub mod projection_matrices;
 mod shaders;
 
 use crate::game::world::World;
+use crate::game::transform::{Transform3D, MatrixTransform3D};
 use crate::global_data::GlobalData;
-use glam::Mat4;
 use glium::{Surface, uniform};
 use self::shaders::ShaderProgramContainer;
 
@@ -27,15 +26,23 @@ impl Renderer {
             1.0
         );
     
+        let affine_mvp_matrix = get_affine_mvp_matrix(
+            &world.player.camera_trs_matrix(),
+            &(world.player.projection_matrix)(global_data),
+            &Transform3D::IDENTITY.into()
+        );
+        let affine_mv_matrix = get_affine_mv_matrix(
+            &world.player.camera_trs_matrix(),
+            &Transform3D::IDENTITY.into()
+        );
         let uniforms = uniform! {
-            matrix: get_gl_mvp_matrix(
-                &world.player.camera_trs_matrix(),
-                &(world.player.projection_matrix)(global_data),
-                &Mat4::from_translation(glam::Vec3::Z)
-            )
+            mvp_matrix: affine_mvp_matrix.linear_transform.to_cols_array_2d(),
+            mvp_translation: affine_mvp_matrix.translation.to_array(),
+            mv_matrix: affine_mv_matrix.linear_transform.to_cols_array_2d(),
+            mv_translation: affine_mv_matrix.translation.to_array()
         };
 
-        let params = glium::DrawParameters {
+        let draw_parameters = glium::DrawParameters {
             depth: glium::Depth {
                 test: glium::draw_parameters::DepthTest::IfLess,
                 write: true,
@@ -49,14 +56,17 @@ impl Renderer {
             &world.scene_mesh.indeces,
             &self.shaders.simple,
             &uniforms,
-            &params
+            &draw_parameters
         ).unwrap();
     
         target.finish().unwrap();
     }
 }
 
-fn get_gl_mvp_matrix(camera_trs: &Mat4, camera_proj: &Mat4, object_trs: &Mat4) -> [[f32; 4]; 4] {
-    let matrix = *camera_proj * camera_trs.inverse() * *object_trs;
-    matrix.to_cols_array_2d()
+fn get_affine_mvp_matrix(camera_trs: &MatrixTransform3D, camera_proj: &MatrixTransform3D, object_trs: &MatrixTransform3D) -> MatrixTransform3D {
+    *camera_proj * camera_trs.inverse() * *object_trs
+}
+
+fn get_affine_mv_matrix(camera_trs: &MatrixTransform3D, object_trs: &MatrixTransform3D) -> MatrixTransform3D {
+    camera_trs.inverse() * *object_trs
 }

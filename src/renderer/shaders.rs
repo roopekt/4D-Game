@@ -6,7 +6,7 @@ pub struct ShaderProgramContainer {
 impl ShaderProgramContainer {
     pub fn new(display: &glium::Display) -> Self {
         let container = Self {
-            simple: shader_program(&display, "default.vert", "simple.frag")
+            simple: shader_program(&display, "default_3D.vert", "simple.frag")
         };
 
         display.release_shader_compiler();

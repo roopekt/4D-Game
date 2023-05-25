@@ -26,38 +26,40 @@ impl Renderer {
             1.0
         );
     
-        let affine_mvp_matrix = get_affine_mvp_matrix(
-            &world.player.camera_trs_matrix(),
-            &(world.player.projection_matrix)(global_data),
-            &Transform3D::IDENTITY.into()
-        );
-        let affine_mv_matrix = get_affine_mv_matrix(
-            &world.player.camera_trs_matrix(),
-            &Transform3D::IDENTITY.into()
-        );
-        let uniforms = uniform! {
-            mvp_matrix: affine_mvp_matrix.linear_transform.to_cols_array_2d(),
-            mvp_translation: affine_mvp_matrix.translation.to_array(),
-            mv_matrix: affine_mv_matrix.linear_transform.to_cols_array_2d(),
-            mv_translation: affine_mv_matrix.translation.to_array()
-        };
+        for mesh in &world.static_scene {
+            let affine_mvp_matrix = get_affine_mvp_matrix(
+                &world.player.camera_trs_matrix(),
+                &(world.player.projection_matrix)(global_data),
+                &Transform3D::IDENTITY.into()
+            );
+            let affine_mv_matrix = get_affine_mv_matrix(
+                &world.player.camera_trs_matrix(),
+                &Transform3D::IDENTITY.into()
+            );
+            let uniforms = uniform! {
+                mvp_matrix: affine_mvp_matrix.linear_transform.to_cols_array_2d(),
+                mvp_translation: affine_mvp_matrix.translation.to_array(),
+                mv_matrix: affine_mv_matrix.linear_transform.to_cols_array_2d(),
+                mv_translation: affine_mv_matrix.translation.to_array()
+            };
 
-        let draw_parameters = glium::DrawParameters {
-            depth: glium::Depth {
-                test: glium::draw_parameters::DepthTest::IfLess,
-                write: true,
+            let draw_parameters = glium::DrawParameters {
+                depth: glium::Depth {
+                    test: glium::draw_parameters::DepthTest::IfLess,
+                    write: true,
+                    .. Default::default()
+                },
                 .. Default::default()
-            },
-            .. Default::default()
-        };
+            };
 
-        target.draw(
-            &world.scene_mesh.vertices,
-            &world.scene_mesh.indeces,
-            &self.shaders.simple,
-            &uniforms,
-            &draw_parameters
-        ).unwrap();
+            target.draw(
+                &mesh.vertices,
+                &mesh.indeces,
+                &self.shaders.simple,
+                &uniforms,
+                &draw_parameters
+            ).unwrap();
+        }
     
         target.finish().unwrap();
     }

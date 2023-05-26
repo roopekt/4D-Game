@@ -2,7 +2,8 @@ pub mod primitives;
 
 use std::ops::{Add, AddAssign};
 use std::iter::Sum;
-use glam::{Mat4, Vec3};
+use glam::Vec3;
+use crate::game::transform::MatrixTransform3D;
 
 type IndexT = u16;
 
@@ -23,14 +24,14 @@ impl Mesh {
         }
     }
 
-    pub fn transform(&mut self, matrix: Mat4) {
+    pub fn transform(&mut self, transformation: &MatrixTransform3D) {
         for vertex in self.vertices.iter_mut() {
-            vertex.transform(matrix);
+            vertex.transform(transformation);
         };
     }
 
-    pub fn as_transformed(mut self, matrix: Mat4) -> Self {
-        self.transform(matrix);
+    pub fn as_transformed(mut self, transformation: &MatrixTransform3D) -> Self {
+        self.transform(transformation);
         return self;
     }
 }
@@ -70,14 +71,19 @@ pub struct StaticUploadedMesh {
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex {
-    pub position: [f32; 3]
+    pub position: [f32; 3],
+    pub normal: [f32; 3]
 }
-glium::implement_vertex!(Vertex, position);
+glium::implement_vertex!(Vertex, position, normal);
 
 impl Vertex {
-    pub fn transform(&mut self, matrix: Mat4) {
+    pub fn transform(&mut self, transformation: &MatrixTransform3D) {
         let mut pos_vec: Vec3 = self.position.into();
-        pos_vec = matrix.transform_point3(pos_vec);
+        pos_vec = transformation * &pos_vec;
         self.position = pos_vec.into();
+
+        let mut normal_vec: Vec3 = self.normal.into();
+        normal_vec = transformation.point_transform_to_normal_transform() * normal_vec;
+        self.normal = normal_vec.into(); 
     }
 }

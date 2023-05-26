@@ -8,7 +8,6 @@ use glium::glutin::event::VirtualKeyCode;
 pub struct Player {
     pub transform: Transform3D,
     pub relative_camera_transform: Transform3D,
-    pub projection_matrix: fn(&GlobalData) -> MatrixTransform3D,
     pub look_direction: Vec2// (around y, around x), radians
 }
 impl Player {
@@ -19,7 +18,6 @@ impl Player {
                 position: Vec3::Y * 0.2,
                 ..Transform3D::default()
             },
-            projection_matrix: player_projection_matrix_3D,
             look_direction: Vec2::ZERO
         }
     }
@@ -43,21 +41,25 @@ impl Player {
         self.relative_camera_transform.orientation = Mat3::from_rotation_x(self.look_direction.y);
     }
 
-    pub fn trs_matrix(&self) -> MatrixTransform3D {
+    pub fn get_trs_matrix(&self) -> MatrixTransform3D {
         self.transform.into()
     }
 
-    pub fn camera_trs_matrix(&self) -> MatrixTransform3D {
+    pub fn get_camera_trs_matrix(&self) -> MatrixTransform3D {
         self.transform.as_matrix_ignore_scale() * self.relative_camera_transform.into()
+    }
+
+    pub fn get_camera_world_position(&self) -> Vec3 {
+        &self.transform.as_matrix_ignore_scale() * &self.relative_camera_transform.position
     }
 }
 
-fn player_projection_matrix_3D(global_data: &GlobalData) -> MatrixTransform3D {
+pub fn player_projection_matrix_3D(global_data: &GlobalData) -> MatrixTransform3D {
     let matrix_4x4 = Mat4::perspective_rh_gl(
-        global_data.options.dev.graphics.fov,
+        global_data.options.dev.camera.fov,
         global_data.aspect_ratio(),
-        global_data.options.dev.graphics.near_plane,
-        global_data.options.dev.graphics.far_plane
+        global_data.options.dev.camera.near_plane,
+        global_data.options.dev.camera.far_plane
     ) * Mat4::from_scale(Vec3::NEG_ONE);
     Affine3A::from_mat4(matrix_4x4).into()
 }

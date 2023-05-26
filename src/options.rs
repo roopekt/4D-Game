@@ -15,8 +15,9 @@ pub struct UserOptions {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct DevOptions {
-    pub graphics: DevGraphicsOptions,
-    pub player: PlayerOptions
+    pub camera: CameraOptions,
+    pub player: PlayerOptions,
+    pub light: LightOptions
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -26,7 +27,7 @@ pub struct UserGraphicsOptions {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct DevGraphicsOptions {
+pub struct CameraOptions {
     pub fov: f32,
     pub near_plane: f32,
     pub far_plane: f32
@@ -40,6 +41,14 @@ pub struct InputOptions {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct PlayerOptions {
     pub walking_speed: f32
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct LightOptions {
+    pub light_color: [f32; 3],
+    pub ambient_color: [f32; 3],
+    pub linear_attenuation: f32,
+    pub quadratic_attenuation: f32
 }
 
 impl Options {

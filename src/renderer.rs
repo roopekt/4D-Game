@@ -6,6 +6,8 @@ use crate::game::transform::{Transform3D, MatrixTransform3D};
 use crate::global_data::GlobalData;
 use glium::{Surface, uniform};
 use self::shaders::ShaderProgramContainer;
+use crate::game::player::player_projection_matrix_3D;
+use glam::f32::Vec3;
 
 pub struct Renderer {
     shaders: ShaderProgramContainer,
@@ -27,20 +29,31 @@ impl Renderer {
         );
     
         for mesh in &world.static_scene {
-            let affine_mvp_matrix = get_affine_mvp_matrix(
-                &world.player.camera_trs_matrix(),
-                &(world.player.projection_matrix)(global_data),
-                &Transform3D::IDENTITY.into()
-            );
-            let affine_mv_matrix = get_affine_mv_matrix(
-                &world.player.camera_trs_matrix(),
-                &Transform3D::IDENTITY.into()
-            );
+            let world_transform: MatrixTransform3D = Transform3D::IDENTITY.into();
+            let view_transform = world.player.get_camera_trs_matrix().inverse() * world_transform;
+            let clip_transform = player_projection_matrix_3D(global_data) * view_transform;
+            let normal_matrix = world_transform.point_transform_to_normal_transform();
+
+            let albedo_color: [f32; 3] = [1.0, 0.0, 0.0];
+            // let light_position: [f32; 3] = [0.0, 2.0, 0.0];
+            let light_position = world.player.get_camera_world_position().to_array();
+
             let uniforms = uniform! {
-                mvp_matrix: affine_mvp_matrix.linear_transform.to_cols_array_2d(),
-                mvp_translation: affine_mvp_matrix.translation.to_array(),
-                mv_matrix: affine_mv_matrix.linear_transform.to_cols_array_2d(),
-                mv_translation: affine_mv_matrix.translation.to_array()
+                to_world_matrix: world_transform.linear_transform.to_cols_array_2d(),
+                to_world_translation: world_transform.translation.to_array(),
+                to_view_matrix: view_transform.linear_transform.to_cols_array_2d(),
+                to_view_translation: view_transform.translation.to_array(),
+                to_clip_matrix: clip_transform.linear_transform.to_cols_array_2d(),
+                to_clip_translation: clip_transform.translation.to_array(),
+                normal_matrix: normal_matrix.to_cols_array_2d(),
+
+                albedo: albedo_color,
+
+                light_position: light_position,
+                light_color: global_data.options.dev.light.light_color,
+                ambient_light_color: global_data.options.dev.light.ambient_color,
+                light_linear_attenuation: global_data.options.dev.light.linear_attenuation,
+                light_quadratic_attenuation: global_data.options.dev.light.quadratic_attenuation
             };
 
             let draw_parameters = glium::DrawParameters {
@@ -55,7 +68,7 @@ impl Renderer {
             target.draw(
                 &mesh.vertices,
                 &mesh.indeces,
-                &self.shaders.simple,
+                &self.shaders.default,
                 &uniforms,
                 &draw_parameters
             ).unwrap();
@@ -63,12 +76,4 @@ impl Renderer {
     
         target.finish().unwrap();
     }
-}
-
-fn get_affine_mvp_matrix(camera_trs: &MatrixTransform3D, camera_proj: &MatrixTransform3D, object_trs: &MatrixTransform3D) -> MatrixTransform3D {
-    *camera_proj * camera_trs.inverse() * *object_trs
-}
-
-fn get_affine_mv_matrix(camera_trs: &MatrixTransform3D, object_trs: &MatrixTransform3D) -> MatrixTransform3D {
-    camera_trs.inverse() * *object_trs
 }

@@ -48,6 +48,10 @@ impl MatrixTransform3D {
             translation: -inverse_linear_transform * self.translation
         }
     }
+
+    pub fn point_transform_to_normal_transform(&self) -> Mat3 {
+        self.linear_transform.inverse().transpose() //http://www.lighthouse3d.com/tutorials/glsl-12-tutorial/the-normal-matrix/
+    }
 }
 
 impl From<&Transform3D> for MatrixTransform3D {
@@ -71,14 +75,39 @@ impl From<Affine3A> for MatrixTransform3D{
         }
     }
 }
-
-impl Mul for MatrixTransform3D {
-    type Output = Self;
-
-    fn mul(self, rhs: Self) -> Self::Output {
+impl From<Mat3> for MatrixTransform3D{
+    fn from(matrix: Mat3) -> Self {
         Self {
+            linear_transform: matrix,
+            translation: Vec3::ZERO
+        }
+    }
+}
+
+impl Mul<&MatrixTransform3D> for &MatrixTransform3D {
+    type Output = MatrixTransform3D;
+
+    fn mul(self, rhs: &MatrixTransform3D) -> Self::Output {
+        MatrixTransform3D {
             linear_transform: self.linear_transform * rhs.linear_transform,
             translation: self.linear_transform * rhs.translation + self.translation
         }
+    }
+}
+impl Mul<MatrixTransform3D> for MatrixTransform3D {
+    type Output = MatrixTransform3D;
+
+    fn mul(self, rhs: MatrixTransform3D) -> Self::Output {
+        MatrixTransform3D {
+            linear_transform: self.linear_transform * rhs.linear_transform,
+            translation: self.linear_transform * rhs.translation + self.translation
+        }
+    }
+}
+impl Mul<&Vec3> for &MatrixTransform3D {
+    type Output = Vec3;
+
+    fn mul(self, rhs: &Vec3) -> Self::Output {
+        self.linear_transform * *rhs + self.translation
     }
 }

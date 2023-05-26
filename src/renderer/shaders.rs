@@ -1,12 +1,12 @@
 use std::fs;
 
 pub struct ShaderProgramContainer {
-    pub simple: glium::Program
+    pub default: glium::Program
 }
 impl ShaderProgramContainer {
     pub fn new(display: &glium::Display) -> Self {
         let container = Self {
-            simple: shader_program(&display, "default_3D.vert", "simple.frag")
+            default: shader_program(&display, "default_3D.vert", "default.frag")
         };
 
         display.release_shader_compiler();

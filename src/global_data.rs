@@ -19,4 +19,8 @@ impl GlobalData {
     pub fn aspect_ratio(&self) -> f32 {
         (self.resolution.x as f32) / (self.resolution.y as f32)
     }
+
+    pub fn reload_options(&mut self) {
+        self.options = Options::load();
+    }
 }

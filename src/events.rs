@@ -1,8 +1,9 @@
 pub mod input;
 
-use glium::glutin::event;
+use glium::glutin::event::{self, VirtualKeyCode, ElementState};
 use input::InputHandler;
 use crate::global_data::GlobalData;
+use std::println;
 
 pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, global_data: &mut GlobalData) {
     match event
@@ -18,6 +19,14 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
                 {
                     event::KeyboardInput { virtual_keycode: Some(key), state, .. } => {
                         input_handler.update_key(key, state);
+                    },
+                    _ => ()
+                }
+                match input
+                {
+                    event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::F1), state: ElementState::Pressed, .. } => {
+                        global_data.reload_options();
+                        println!("Options reloaded");
                     },
                     _ => ()
                 }

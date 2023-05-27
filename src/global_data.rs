@@ -4,7 +4,8 @@ use glam::UVec2;
 pub struct GlobalData {
     pub close_requested: bool,
     pub resolution: UVec2,
-    pub options: Options
+    pub options: Options,
+    pub mouse_grabbed: bool
 }
 impl GlobalData {
     pub fn new() -> Self {
@@ -12,7 +13,8 @@ impl GlobalData {
         GlobalData {
             close_requested: false,
             resolution: UVec2::from_array(options.user.graphics.default_resolution),
-            options: options
+            options: options,
+            mouse_grabbed: false
         }
     }
 

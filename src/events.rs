@@ -5,7 +5,7 @@ use input::InputHandler;
 use crate::global_data::GlobalData;
 use std::println;
 
-pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, global_data: &mut GlobalData) {
+pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, global_data: &mut GlobalData, display: &glium::Display) {
     match event
     {
         event::Event::WindowEvent { event: win_event, .. } => match win_event
@@ -28,6 +28,9 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
                         global_data.reload_options();
                         println!("Options reloaded");
                     },
+                    event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::F2), state: ElementState::Pressed, .. } => {
+                        set_mouse_grab(!global_data.mouse_grabbed, global_data, display);
+                    }
                     _ => ()
                 }
             },
@@ -38,10 +41,21 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
         },
         event::Event::DeviceEvent { event: device_event, .. } => match device_event {
             event::DeviceEvent::MouseMotion { delta } => {
-                input_handler.add_mouse_delta(delta.0, delta.1);
+                if global_data.mouse_grabbed {
+                    input_handler.add_mouse_delta(delta.0, delta.1);
+                }
             },
             _ => ()
         },
         _ => ()
     }
+}
+
+pub fn set_mouse_grab(grabbed: bool, global_data: &mut GlobalData, display: &glium::Display) {
+    let cw = display.gl_window();
+    let window = cw.window();
+    window.set_cursor_grab(grabbed).unwrap();
+    window.set_cursor_visible(!grabbed);
+
+    global_data.mouse_grabbed = grabbed;
 }

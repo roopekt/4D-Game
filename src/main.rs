@@ -20,7 +20,9 @@ fn main() {
     
     let mut input_handler = events::input::InputHandler::new();
     let mut world = game::world::World::new(&global_data, &display);
-    let renderer = Renderer::new(display);
+    let renderer = Renderer::new(&display);
+
+    events::set_mouse_grab(true, &mut global_data, &display);
 
     let mut next_frame_start_time = Instant::now();
     let time_epsilon = Duration::from_micros(100);
@@ -29,11 +31,11 @@ fn main() {
         
         let this_frame_start_time = Instant::now();
         
-        events::handle_event(event, &mut input_handler, &mut global_data);
+        events::handle_event(event, &mut input_handler, &mut global_data, &display);
         
         if this_frame_start_time + time_epsilon > next_frame_start_time {
             game::update_game(&mut world, &input_handler, &mut global_data);
-            renderer.render_frame(&world, &mut global_data);
+            renderer.render_frame(&display, &world, &mut global_data);
             input_handler.reset_deltas();
             
             let single_frame_duration = Duration::from_secs(1).div_f32(global_data.options.user.graphics.max_fps);
@@ -56,13 +58,6 @@ fn get_display(event_loop: &glutin::event_loop::EventLoop<()>, global_data: &Glo
     let cb = glutin::ContextBuilder::new()
         .with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();
-
-    {
-        let cw = display.gl_window();
-        let window = cw.window();
-        window.set_cursor_grab(true).unwrap();
-        window.set_cursor_visible(false);
-    }
 
     display
 }

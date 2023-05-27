@@ -3,7 +3,7 @@ pub mod primitives;
 use std::ops::{Add, AddAssign};
 use std::iter::Sum;
 use glam::Vec3;
-use crate::game::transform::MatrixTransform3D;
+use crate::game::transform::AffineTransform3D;
 
 type IndexT = u16;
 
@@ -24,13 +24,13 @@ impl Mesh {
         }
     }
 
-    pub fn transform(&mut self, transformation: &MatrixTransform3D) {
+    pub fn transform(&mut self, transformation: &AffineTransform3D) {
         for vertex in self.vertices.iter_mut() {
             vertex.transform(transformation);
         };
     }
 
-    pub fn as_transformed(mut self, transformation: &MatrixTransform3D) -> Self {
+    pub fn as_transformed(mut self, transformation: &AffineTransform3D) -> Self {
         self.transform(transformation);
         return self;
     }
@@ -77,7 +77,7 @@ pub struct Vertex {
 glium::implement_vertex!(Vertex, position, normal);
 
 impl Vertex {
-    pub fn transform(&mut self, transformation: &MatrixTransform3D) {
+    pub fn transform(&mut self, transformation: &AffineTransform3D) {
         let mut pos_vec: Vec3 = self.position.into();
         pos_vec = transformation * &pos_vec;
         self.position = pos_vec.into();

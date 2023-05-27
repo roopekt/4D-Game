@@ -1,4 +1,4 @@
-use super::transform::{Transform3D, MatrixTransform3D};
+use super::transform::{Transform3D, AffineTransform3D};
 use crate::events::input::InputHandler;
 use crate::global_data::GlobalData;
 use glam::{Vec3, Vec2, Mat3, Mat4, Affine3A};
@@ -41,11 +41,11 @@ impl Player {
         self.relative_camera_transform.orientation = Mat3::from_rotation_x(self.look_direction.y);
     }
 
-    pub fn get_trs_matrix(&self) -> MatrixTransform3D {
+    pub fn get_trs_matrix(&self) -> AffineTransform3D {
         self.transform.into()
     }
 
-    pub fn get_camera_trs_matrix(&self) -> MatrixTransform3D {
+    pub fn get_camera_trs_matrix(&self) -> AffineTransform3D {
         self.transform.as_matrix_ignore_scale() * self.relative_camera_transform.into()
     }
 
@@ -54,7 +54,7 @@ impl Player {
     }
 }
 
-pub fn player_projection_matrix_3D(global_data: &GlobalData) -> MatrixTransform3D {
+pub fn player_projection_matrix_3D(global_data: &GlobalData) -> AffineTransform3D {
     let matrix_4x4 = Mat4::perspective_rh_gl(
         global_data.options.dev.camera.fov,
         global_data.aspect_ratio(),

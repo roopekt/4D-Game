@@ -1,7 +1,7 @@
 use super::{Mesh, Vertex};
 use std::f32::consts::PI;
 use glam::{Mat3, Vec3};
-use crate::game::transform::{MatrixTransform3D, Transform3D};
+use crate::game::transform::{AffineTransform3D, Transform3D};
 
 pub fn quad() -> Mesh {
     Mesh {
@@ -20,7 +20,7 @@ pub fn quad() -> Mesh {
 
 //gives a cube with width 1 and center as origin
 pub fn cube() -> Mesh {
-    let rotations: Vec<MatrixTransform3D> = vec!{
+    let rotations: Vec<AffineTransform3D> = vec!{
         Mat3::from_rotation_y(PI *  0.0).into(),
         Mat3::from_rotation_y(PI *  0.5).into(),
         Mat3::from_rotation_y(PI *  1.0).into(),
@@ -28,7 +28,7 @@ pub fn cube() -> Mesh {
         Mat3::from_rotation_x(PI * -0.5).into(),
         Mat3::from_rotation_x(PI *  0.5).into(),
     };
-    let translation: MatrixTransform3D = Transform3D{ position: Vec3::Z * 0.5, ..Default::default() }.into();
+    let translation: AffineTransform3D = Transform3D{ position: Vec3::Z * 0.5, ..Default::default() }.into();
 
     return rotations
         .iter()

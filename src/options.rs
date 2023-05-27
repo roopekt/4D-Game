@@ -1,3 +1,4 @@
+use glam::Vec3;
 use serde::{Deserialize, de::DeserializeOwned, Serialize};
 use std::fs;
 
@@ -65,4 +66,14 @@ fn load_from_file<T: DeserializeOwned>(path: &str) -> T {
 
     return serde_json::from_str(json.as_str())
         .expect(format!("Failed to parse file: {}", path).as_str());
+}
+
+pub trait AsVector<T> {
+    fn as_vector(&self) -> T;
+}
+
+impl AsVector<Vec3> for [f32; 3] {
+    fn as_vector(&self) -> Vec3 {
+        Vec3::new(self[0], self[1], self[2])
+    }
 }

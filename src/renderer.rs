@@ -1,24 +1,31 @@
 pub mod mesh;
+pub mod materials;
+mod abstract_material;
 mod shaders;
 mod uniform;
 
 use crate::game::world::World;
 use crate::game::transform::Transform3D;
 use crate::global_data::GlobalData;
+use glam::Vec3;
 use glium::Surface;
+use self::abstract_material::Material;
 use self::shaders::ShaderProgramContainer;
 use crate::game::player::player_projection_matrix_3D;
 use uniform::{GlobalVertexBlock, GlobalFragmentBlock, UniformBlock};
 use uniform::glsl_conversion::ToStd140;
 use crate::options::AsVector;
+use materials::SingleColorMaterial3D;
 
 pub struct Renderer {
-    shaders: ShaderProgramContainer
+    shader_programs: ShaderProgramContainer,
+    default_material: SingleColorMaterial3D
 }
 impl Renderer {
     pub fn new(display: &glium::Display) -> Self {
         Self {
-            shaders: ShaderProgramContainer::new(display)
+            shader_programs: ShaderProgramContainer::new(display),
+            default_material: SingleColorMaterial3D { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
         }
     }
 
@@ -50,14 +57,7 @@ impl Renderer {
                 light_quadratic_attenuation: global_data.options.dev.light.quadratic_attenuation.std140()
             };
             let fragment_block_buffer = fragment_block.get_glium_uniform_buffer(display);
-
-            let albedo_color: [f32; 3] = [1.0, 0.0, 0.0];
-            let uniforms = glium::uniform! {
-                vertex_uniforms: &vertex_block_buffer,
-                fragment_uniforms: &fragment_block_buffer,
-                albedo: albedo_color
-            };
-
+            
             let draw_parameters = glium::DrawParameters {
                 depth: glium::Depth {
                     test: glium::draw_parameters::DepthTest::IfLess,
@@ -67,13 +67,7 @@ impl Renderer {
                 .. Default::default()
             };
 
-            target.draw(
-                &mesh.vertices,
-                &mesh.indeces,
-                &self.shaders.default,
-                &uniforms,
-                &draw_parameters
-            ).unwrap();
+            self.default_material.draw_mesh(&mut target, &mesh.vertices, &mesh.indeces, &self.shader_programs, vertex_block_buffer, fragment_block_buffer, &draw_parameters).unwrap();
         }
     
         target.finish().unwrap();

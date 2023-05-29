@@ -1,21 +1,18 @@
 pub mod mesh;
-pub mod materials;
-mod abstract_material;
-mod shaders;
-mod uniform;
+pub mod shading;
 
 use crate::game::world::World;
 use crate::game::transform::Transform3D;
 use crate::global_data::GlobalData;
 use glam::Vec3;
 use glium::Surface;
-use self::abstract_material::Material;
-use self::shaders::ShaderProgramContainer;
+use shading::abstract_material::Material;
+use shading::shaders::ShaderProgramContainer;
 use crate::game::player::player_projection_matrix_3D;
-use uniform::{GlobalVertexBlock, GlobalFragmentBlock, UniformBlock};
-use uniform::glsl_conversion::ToStd140;
+use shading::uniform::{GlobalVertexBlock, GlobalFragmentBlock, UniformBlock};
+use shading::glsl_conversion::ToStd140;
 use crate::options::AsVector;
-use materials::SingleColorMaterial3D;
+use shading::materials::SingleColorMaterial3D;
 
 pub struct Renderer {
     shader_programs: ShaderProgramContainer,

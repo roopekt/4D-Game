@@ -7,9 +7,9 @@ macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
         target: &mut glium::Frame,
         vertices: V,
         indeces: I,
-        programs: &crate::renderer::shaders::ShaderProgramContainer,
-        vertex_block: glium::uniforms::UniformBuffer<crate::renderer::uniform::GlobalVertexBlock>,
-        fragment_block: glium::uniforms::UniformBuffer<crate::renderer::uniform::GlobalFragmentBlock>,
+        programs: &crate::renderer::shading::shaders::ShaderProgramContainer,
+        vertex_block: glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock>,
+        fragment_block: glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
         where V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>

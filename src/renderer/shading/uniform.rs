@@ -1,6 +1,4 @@
-pub mod glsl_conversion;
-
-use glsl_conversion::Std140AffineTransform3D;
+use super::glsl_conversion::Std140AffineTransform3D;
 use std140;
 
 #[std140::repr_std140]

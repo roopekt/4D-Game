@@ -21,23 +21,6 @@ impl SingleColorMaterial3D {
     }
 }
 
-//for testing
-#[derive(Debug, Copy, Clone)]
-pub struct WhiteMaterial3D {
-}
-impl Material for WhiteMaterial3D {
-    const PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new("default_3D.vert", "single_color.frag");
-    const PROGRAM_ID: ShaderProgramId = get_program_id::<Self>();
-    implement_material_draw!(Self::get_uniforms);
-}
-impl WhiteMaterial3D {
-    fn get_uniforms(&self) -> any_uniforms_storage!() {
-        glium::uniform!{
-            albedo: Vec3::new(1.0, 1.0, 1.0).to_array()
-        }
-    }
-}
-
 const fn get_program_id<T: Material>() -> ShaderProgramId {
     let mut i: ShaderProgramId = 0;
     while i < PROGRAM_DESCRIPTORS.len() {

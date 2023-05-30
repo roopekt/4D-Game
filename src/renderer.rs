@@ -70,7 +70,6 @@ impl Renderer {
         for object in &world.static_scene {
             self.render_object(object, target, params);
         }
-        self.render_object(&world.white_cube, target, params);
     }
 
     fn render_object<M: Material>(&self, object: &RenderableObject<M>, target: &mut glium::Frame, params: &ObjectDrawParameters) {

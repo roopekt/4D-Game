@@ -12,22 +12,14 @@ use crate::renderer::shading::materials;
 pub struct World {
     pub last_update_time: Instant,
     pub player: Player,
-    pub static_scene: Vec<RenderableObject<materials::SingleColorMaterial3D>>,
-    pub white_cube: RenderableObject<materials::WhiteMaterial3D>
+    pub static_scene: Vec<RenderableObject<materials::SingleColorMaterial3D>>
 }
 impl World {
     pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
-        let white_cube = RenderableObject {
-            transform: Transform3D{position: Vec3::Y * 2.0, ..Default::default()}.into(),
-            mesh: mesh::primitives::cube().upload_static(display),
-            material: materials::WhiteMaterial3D{}
-        };
-
         World {
             last_update_time: Instant::now(),
             player: Player::new(global_data),
-            static_scene: get_static_scene_objects(display),
-            white_cube: white_cube
+            static_scene: get_static_scene_objects(display)
         }
     }
 }

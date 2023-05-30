@@ -8,15 +8,15 @@ macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
         vertices: V,
         indeces: I,
         programs: &crate::renderer::shading::shaders::ShaderProgramContainer,
-        vertex_block: glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock>,
-        fragment_block: glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
+        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock>,
+        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
         where V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>
     {
         let uniforms = $get_uniforms_func(self);
-        let uniforms = uniforms.add("vertex_uniforms", &vertex_block);
-        let uniforms = uniforms.add("fragment_uniforms", &fragment_block);
+        let uniforms = uniforms.add("vertex_uniforms", vertex_block);
+        let uniforms = uniforms.add("fragment_uniforms", fragment_block);
 
         let program = programs.get_program(Self::PROGRAM_ID);
 
@@ -37,8 +37,8 @@ pub trait Material {
         vertices: V,
         indeces: I,
         programs: &ShaderProgramContainer,
-        vertex_block: glium::uniforms::UniformBuffer<GlobalVertexBlock>,
-        fragment_block: glium::uniforms::UniformBuffer<GlobalFragmentBlock>,
+        vertex_block: &glium::uniforms::UniformBuffer<GlobalVertexBlock>,
+        fragment_block: &glium::uniforms::UniformBuffer<GlobalFragmentBlock>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
         where V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>;

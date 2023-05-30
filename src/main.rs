@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]// will otherwise complain about 3D and 4D not being in snake case
+
 pub mod options;
 pub mod global_data;
 pub mod events;

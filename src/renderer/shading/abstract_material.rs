@@ -1,6 +1,11 @@
 use super::uniform::{GlobalVertexBlock, GlobalFragmentBlock};
 use super::shaders::ShaderProgramContainer;
 
+// Reason for the weird macro based code is that the type returned by the glium::uniform! macro is huge
+// (impractical to type out for each Material implementor) and depends on the input.
+// Trait method implementations require the return type to be specified explicitly (impl Trait doesn't work either),
+// so the value must be used on site in case of draw_mesh. This is why it isn't just a get_uniforms, but also handles rendering.
+// However, an individual Material implementor can reasonably define an uniform getter using impl Trait, and a macro can then implement draw_mesh.
 macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
     fn draw_mesh<'a, 'b, V, I>(
         &self,

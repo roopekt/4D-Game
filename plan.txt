@@ -23,19 +23,24 @@ Rendering:
             extra frustum culling done per fragment
             potential problem when an ocluded fragemnt is drawn on top of a non-ocluded fragment
                 solutions:
-                    1. higher resolution -> multiple pixels per each final pixel
-                    2. a point that was erased last frame can only be drawn if the target pixel is empty (erasures must be saved to some buffer)
-                    3. each pixel is an array (3D texture & int texture for length) -> multiple slots per pixel, length parallelized with atomics
+                    1. NO higher resolution -> multiple pixels per each final pixel
+                    2. NO a point that was erased last frame can only be drawn if the target pixel is empty (erasures must be saved to some buffer)
+                    3. YES each pixel is an array (3D texture & int texture for length) -> multiple slots per pixel, length parallelized with imageAtomicAdd
+                        stencil buffer probably better for length
         erase pass:
             tetrahedrons are rendered
             tetrahedron fragment:
-                if a point of a line has been drawn here, do a software oclusion test. Erase if the point is ocluded
+                if a point of a line has been drawn here, do a software oclusion test (between the tetrahedron and the 4D point). Erase if the point is ocluded
 
 Controls:
     Jump and crouch with space and shift (up is still an axis)
     Walking with QWEASD:
         one forward axis
         two sideways axes
+    Or walking with AWSEDF:
+        ED forward & back
+        WS "up & down" sideways
+        AD "left & right" sideways
     Rotation:
         4D euler angles: https://www.research.kobe-u.ac.jp/csi-viz/members/kageyama/docs/150629_euler_angles_in4d.pdf
         up & down with scroll wheel, clamped

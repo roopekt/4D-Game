@@ -53,13 +53,23 @@ pub type ShaderProgramId = usize;
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct ProgramDescriptor {
     pub vertex_shader_path: &'static str,
-    pub fragment_shader_path: &'static str
+    pub fragment_shader_path: &'static str,
+    pub geometry_shader_path: Option<&'static str>
 }
 impl ProgramDescriptor {
     pub const fn new(vertex_shader_path: &'static str, fragment_shader_path: &'static str) -> Self {
         Self {
             vertex_shader_path: vertex_shader_path,
-            fragment_shader_path: fragment_shader_path
+            fragment_shader_path: fragment_shader_path,
+            geometry_shader_path: None
+        }
+    }
+
+    pub const fn new_with_geometry(vertex_shader_path: &'static str, fragment_shader_path: &'static str, geometry_shader_path: &'static str) -> Self {
+        Self {
+            vertex_shader_path: vertex_shader_path,
+            fragment_shader_path: fragment_shader_path,
+            geometry_shader_path: Some(geometry_shader_path)
         }
     }
 

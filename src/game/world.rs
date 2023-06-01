@@ -36,7 +36,7 @@ fn get_static_scene_objects(display: &glium::Display) -> Vec<RenderableObject<ma
     objects.push(RenderableObject {
         transform: floor_trs.into(),
         mesh: mesh::primitives::quad().upload_static(display),
-        material: materials::SingleColorMaterial3D { albedo_color: random_color(&mut rng) }
+        material: materials::SingleColorMaterial3D { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
     });
 
     for _ in 0..15 {

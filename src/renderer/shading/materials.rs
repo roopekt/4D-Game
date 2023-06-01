@@ -9,7 +9,8 @@ pub struct SingleColorMaterial3D {
     pub albedo_color: Vec3
 }
 impl Material for SingleColorMaterial3D {
-    const PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new("default_3D.vert", "single_color.frag");
+    const PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new_with_geometry(
+        "default_sliced_3D.vert", "single_color.frag", "sliced_3D.geom");
     const PROGRAM_ID: ShaderProgramId = get_program_id::<Self>();
     implement_material_draw!(Self::get_uniforms);
 }

@@ -15,7 +15,7 @@ layout (std140) uniform vertex_uniforms {
 in vec3 position;
 in vec3 normal;
 
-out FRAG_IN {
+out GS_IN {
     vec3 world_position;
     vec3 world_normal;
 } v_out;

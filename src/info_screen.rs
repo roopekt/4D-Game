@@ -1,9 +1,11 @@
-use crate::options::AsTuple;
+use crate::options::AsVector;
 use crate::renderer::text_rendering; 
 use crate::global_data::GlobalData;
 use crate::game::world::World;
 use glium_glyph::glyph_brush;
 use std::fmt::Display;
+use glam::Vec2;
+use std::f32::consts::TAU;
 
 pub fn render_info_screen(
     target: &mut glium::Frame,
@@ -24,19 +26,35 @@ FPS: {FPS:.1}
 Position: {camera_position:.2}
 Look direction: {look_direction:.2}");
 
+    let font_size = global_data.options.user.info_screen.font_size;
+    let screen_position = global_data.options.user.info_screen.position.as_vector();
+
     let formatted_text = glyph_brush::Text {
         text: &text,
-        scale: global_data.options.user.info_screen.font_size.into(),
+        scale: font_size.into(),
         font_id: text_renderer.fonts.info_screen,
-        extra: glyph_brush::Extra { color: [1.0, 1.0, 1.0, 1.0], ..Default::default() }
+        ..Default::default()
     };
-    let section = glyph_brush::Section {
-        screen_position: global_data.options.user.info_screen.position.as_tuple(),
+    let mut section = glyph_brush::Section {
         text: vec![formatted_text],
         ..Default::default()
     };
 
+    //outline
+    section.text[0].extra.color = [0.0, 0.0, 0.0, 1.0];
+    let outline_size = global_data.options.user.info_screen.relative_outline_size * font_size;
+    let offsets = get_points_on_unit_circle(global_data.options.user.info_screen.outline_quality);
+    for offset in offsets {
+        section.screen_position = (screen_position + outline_size * offset).into();
+
+        text_renderer.brush.queue(section.clone());
+    }
+    
+    //main text
+    section.text[0].extra.color = [1.0, 1.0, 1.0, 1.0];
+    section.screen_position = screen_position.into();
     text_renderer.brush.queue(section);
+
     text_renderer.brush.draw_queued(display, target);
 }
 
@@ -72,4 +90,18 @@ impl Display for CustomFormatted<glam::Vec3> {
             format_vector_component(self.0.z, formatter)
         )
     }
+}
+
+fn get_points_on_unit_circle(count: usize) -> Vec<Vec2> {
+    let rotation = Vec2::from_angle(TAU / count as f32);
+    let mut points = Vec::<Vec2>::with_capacity(count);
+
+    for _ in 0..count {
+        points.push(match points.last() {
+            Some(v) => v.rotate(rotation),
+            None => Vec2::X
+        });
+    }
+
+    points
 }

@@ -1,4 +1,4 @@
-use glam::Vec3;
+use glam::{Vec3, Vec2};
 use serde::{Deserialize, de::DeserializeOwned, Serialize};
 use std::fs;
 
@@ -57,7 +57,9 @@ pub struct LightOptions {
 pub struct InfoScreenOptions {
     pub font_name: String,
     pub font_size: f32,
-    pub position: [f32; 2]
+    pub position: [f32; 2],
+    pub relative_outline_size: f32,
+    pub outline_quality: usize
 }
 
 impl Options {
@@ -79,17 +81,14 @@ fn load_from_file<T: DeserializeOwned>(path: &str) -> T {
 pub trait AsVector<T> {
     fn as_vector(&self) -> T;
 }
+
+impl AsVector<Vec2> for [f32; 2] {
+    fn as_vector(&self) -> Vec2 {
+        Vec2::new(self[0], self[1])
+    }
+}
 impl AsVector<Vec3> for [f32; 3] {
     fn as_vector(&self) -> Vec3 {
         Vec3::new(self[0], self[1], self[2])
-    }
-}
-
-pub trait AsTuple<T> {
-    fn as_tuple(&self) -> T;
-}
-impl AsTuple<(f32, f32)> for [f32; 2] {
-    fn as_tuple(&self) -> (f32, f32) {
-        (self[0], self[1])
     }
 }

@@ -7,7 +7,8 @@ pub struct GlobalData {
     pub FPS: f32,
     pub options: Options,
     pub mouse_grabbed: bool,
-    pub info_screen_visible: bool
+    pub info_screen_visible: bool,
+    pub visual_mode: VisualMode
 }
 impl GlobalData {
     pub fn new() -> Self {
@@ -16,9 +17,10 @@ impl GlobalData {
             close_requested: false,
             resolution: UVec2::from_array(options.user.graphics.default_resolution),
             FPS: 0.0,
-            options: options,
             mouse_grabbed: false,
-            info_screen_visible: false
+            info_screen_visible: false,
+            visual_mode: VisualMode::from_int(options.user.default_mode),
+            options: options
         }
     }
 
@@ -28,5 +30,24 @@ impl GlobalData {
 
     pub fn reload_options(&mut self) {
         self.options = Options::load();
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub enum VisualMode {
+    Normal3D,
+    Degenerate3D
+}
+impl VisualMode {
+    pub fn from_int(int: u32) -> Self {
+        match int {
+            1 => Self::Normal3D,
+            3 => Self::Degenerate3D,
+            _ => panic!("Unknown visual mode {int}")
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        format!("{:?}", self)
     }
 }

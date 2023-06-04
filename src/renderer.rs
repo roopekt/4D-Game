@@ -6,7 +6,7 @@ pub mod text_rendering;
 use crate::game::world::World;
 use crate::game::player::player_projection_matrix_3D;
 use crate::game::transform::AffineTransform3D;
-use crate::global_data::GlobalData;
+use crate::global_data::{GlobalData, VisualMode};
 use glium::Surface;
 use glium::uniforms::UniformBuffer;
 use shading::abstract_material::Material;
@@ -58,11 +58,12 @@ impl<'a> Renderer<'a> {
         };
 
         let object_draw_parameters = ObjectDrawParameters {
-            display: display,
-            inverse_camera_trs_matrix: inverse_camera_trs_matrix,
-            projection_matrix: projection_matrix,
-            fragment_block_buffer: fragment_block_buffer,
-            glium_draw_parameters: glium_draw_parameters
+            display,
+            inverse_camera_trs_matrix,
+            projection_matrix,
+            fragment_block_buffer,
+            glium_draw_parameters,
+            global_data
         };
 
         self.render_objects(world, &mut target, &object_draw_parameters);
@@ -93,11 +94,17 @@ impl<'a> Renderer<'a> {
         };
         let vertex_block_buffer = vertex_block.get_glium_uniform_buffer(params.display);
 
+        let program_id = match params.global_data.visual_mode {
+            VisualMode::Normal3D => M::PROGRAM_IDS.normal_3D,
+            VisualMode::Degenerate3D => M::PROGRAM_IDS.degenerate_3D
+        };
+        let program = self.shader_programs.get_program(program_id);
+
         object.material.draw_mesh(
             target,
             &object.mesh.vertices,
             &object.mesh.indeces,
-            &self.shader_programs,
+            program,
             &vertex_block_buffer,
             &params.fragment_block_buffer,
             &params.glium_draw_parameters
@@ -110,5 +117,6 @@ struct ObjectDrawParameters<'a> {
     pub inverse_camera_trs_matrix: AffineTransform3D,
     pub projection_matrix: AffineTransform3D,
     pub fragment_block_buffer: UniformBuffer<GlobalFragmentBlock>,
-    pub glium_draw_parameters: glium::DrawParameters<'a>
+    pub glium_draw_parameters: glium::DrawParameters<'a>,
+    pub global_data: &'a GlobalData
 }

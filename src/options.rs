@@ -12,7 +12,8 @@ pub struct Options {
 pub struct UserOptions {
     pub graphics: UserGraphicsOptions,
     pub input: InputOptions,
-    pub info_screen: InfoScreenOptions
+    pub info_screen: InfoScreenOptions,
+    pub default_mode: u32
 }
 
 #[derive(Serialize, Deserialize, Debug)]

@@ -16,12 +16,14 @@ pub fn render_info_screen(
 {
     let resolution = CustomFormatted(global_data.resolution);
     let FPS = global_data.FPS;
+    let visual_mode = global_data.visual_mode.to_string();
     let camera_position = CustomFormatted(world.player.get_camera_world_position());
     let look_direction = CustomFormatted(world.player.get_pretty_look_direction());
 
     let text = format!("\
 Resolution: {resolution}
 FPS: {FPS:.1}
+Mode: {visual_mode}
 
 Position: {camera_position:.2}
 Look direction: {look_direction:.2}");

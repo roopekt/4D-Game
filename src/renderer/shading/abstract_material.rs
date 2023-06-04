@@ -1,5 +1,4 @@
 use super::uniform::{GlobalVertexBlock, GlobalFragmentBlock};
-use super::shaders::ShaderProgramContainer;
 
 // Reason for the weird macro based code is that the type returned by the glium::uniform! macro is huge
 // (impractical to type out for each Material implementor) and depends on the input.
@@ -12,7 +11,7 @@ macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
         target: &mut glium::Frame,
         vertices: V,
         indeces: I,
-        programs: &crate::renderer::shading::shaders::ShaderProgramContainer,
+        program: &glium::Program,
         vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock>,
         fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
         draw_parameters: &glium::DrawParameters<'_>)
@@ -23,8 +22,6 @@ macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
         let uniforms = uniforms.add("vertex_uniforms", vertex_block);
         let uniforms = uniforms.add("fragment_uniforms", fragment_block);
 
-        let program = programs.get_program(Self::PROGRAM_ID);
-
         target.draw(vertices, indeces, program, &uniforms, draw_parameters)
     }
 }}
@@ -33,15 +30,16 @@ pub(crate) use implement_material_draw;
 pub(crate) use any_uniforms_storage;
 
 pub trait Material {
-    const PROGRAM_DESCRIPTOR: ProgramDescriptor;
-    const PROGRAM_ID: ShaderProgramId;
+    const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
+    const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
+    const PROGRAM_IDS: ShaderProgramIdContainer;
 
     fn draw_mesh<'a, 'b, V, I>(
         &self,
         target: &mut glium::Frame,
         vertices: V,
         indeces: I,
-        programs: &ShaderProgramContainer,
+        program: &glium::Program,
         vertex_block: &glium::uniforms::UniformBuffer<GlobalVertexBlock>,
         fragment_block: &glium::uniforms::UniformBuffer<GlobalFragmentBlock>,
         draw_parameters: &glium::DrawParameters<'_>)
@@ -50,6 +48,11 @@ pub trait Material {
 }
 
 pub type ShaderProgramId = usize;
+pub struct ShaderProgramIdContainer {
+    pub normal_3D: ShaderProgramId,
+    pub degenerate_3D: ShaderProgramId
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct ProgramDescriptor {
     pub vertex_shader_path: &'static str,

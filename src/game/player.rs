@@ -52,6 +52,13 @@ impl Player {
     pub fn get_camera_world_position(&self) -> Vec3 {
         &self.transform.as_matrix_ignore_scale() * &self.relative_camera_transform.position
     }
+
+    pub fn get_pretty_look_direction(&self) -> Vec2 {
+        Vec2::new(
+             self.look_direction.x.to_degrees(),
+            -self.look_direction.y.to_degrees()
+        )
+    }
 }
 
 pub fn player_projection_matrix_3D(global_data: &GlobalData) -> AffineTransform3D {

@@ -12,6 +12,7 @@ pub struct Options {
 pub struct UserOptions {
     pub graphics: UserGraphicsOptions,
     pub input: InputOptions,
+    pub info_screen: InfoScreenOptions
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -52,6 +53,13 @@ pub struct LightOptions {
     pub quadratic_attenuation: f32
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct InfoScreenOptions {
+    pub font_name: String,
+    pub font_size: f32,
+    pub position: [f32; 2]
+}
+
 impl Options {
     pub fn load() -> Options {
         Options {
@@ -71,9 +79,17 @@ fn load_from_file<T: DeserializeOwned>(path: &str) -> T {
 pub trait AsVector<T> {
     fn as_vector(&self) -> T;
 }
-
 impl AsVector<Vec3> for [f32; 3] {
     fn as_vector(&self) -> Vec3 {
         Vec3::new(self[0], self[1], self[2])
+    }
+}
+
+pub trait AsTuple<T> {
+    fn as_tuple(&self) -> T;
+}
+impl AsTuple<(f32, f32)> for [f32; 2] {
+    fn as_tuple(&self) -> (f32, f32) {
+        (self[0], self[1])
     }
 }

@@ -1,6 +1,7 @@
 pub mod renderable_object;
 pub mod mesh;
 pub mod shading;
+pub mod text_rendering;
 
 use crate::game::world::World;
 use crate::game::player::player_projection_matrix_3D;
@@ -14,18 +15,21 @@ use shading::uniform::{GlobalVertexBlock, GlobalFragmentBlock, UniformBlock};
 use shading::glsl_conversion::ToStd140;
 use crate::options::AsVector;
 use self::renderable_object::RenderableObject;
+use crate::info_screen::render_info_screen;
 
-pub struct Renderer {
-    shader_programs: ShaderProgramContainer
+pub struct Renderer<'a> {
+    shader_programs: ShaderProgramContainer,
+    text_renderer: text_rendering::TextRenderer<'a>
 }
-impl Renderer {
-    pub fn new(display: &glium::Display) -> Self {
+impl<'a> Renderer<'a> {
+    pub fn new(display: &glium::Display, global_data: &GlobalData) -> Self {
         Self {
-            shader_programs: ShaderProgramContainer::new(display)
+            shader_programs: ShaderProgramContainer::new(display),
+            text_renderer: text_rendering::TextRenderer::new(display, global_data)
         }
     }
 
-    pub fn render_frame(&self, display: &glium::Display, world: &World, global_data: &mut GlobalData) {
+    pub fn render_frame(&mut self, display: &glium::Display, world: &World, global_data: &mut GlobalData) {
         let mut target = display.draw();
         target.clear_color_and_depth(
             (0.0, 0.0, 1.0, 1.0),
@@ -62,6 +66,9 @@ impl Renderer {
         };
 
         self.render_objects(world, &mut target, &object_draw_parameters);
+        if global_data.info_screen_visible {
+            render_info_screen(&mut target, display, &mut self.text_renderer, world, global_data);
+        }
     
         target.finish().unwrap();
     }

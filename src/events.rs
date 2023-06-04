@@ -1,6 +1,6 @@
 pub mod input;
 
-use glium::glutin::event::{self, VirtualKeyCode, ElementState};
+use glium::glutin::{event::{self, VirtualKeyCode, ElementState}, window::CursorGrabMode};
 use input::InputHandler;
 use crate::global_data::GlobalData;
 use std::println;
@@ -30,6 +30,9 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
                     },
                     event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::F2), state: ElementState::Pressed, .. } => {
                         set_mouse_grab(!global_data.mouse_grabbed, global_data, display);
+                    },
+                    event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::F3), state: ElementState::Pressed, .. } => {
+                        global_data.info_screen_visible = !global_data.info_screen_visible;
                     }
                     _ => ()
                 }
@@ -52,9 +55,14 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
 }
 
 pub fn set_mouse_grab(grabbed: bool, global_data: &mut GlobalData, display: &glium::Display) {
+    let grab_mode = match grabbed {
+        true => CursorGrabMode::Confined,//broken on Mac, iOS, Android and Web
+        false => CursorGrabMode::None
+    };
+
     let cw = display.gl_window();
     let window = cw.window();
-    window.set_cursor_grab(grabbed).unwrap();
+    window.set_cursor_grab(grab_mode).unwrap();
     window.set_cursor_visible(!grabbed);
 
     global_data.mouse_grabbed = grabbed;

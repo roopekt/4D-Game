@@ -6,10 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-glium = "*"
+glium = "0.32.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 glam = "0.21.2"
 rand = { version = "0.8.5", features = [ "small_rng" ] }
 std140 = "0.2.6"
 const-str = "0.5.4"
+glium-glyph = "0.14.0"
+rust-fontconfig = "0.1.6"

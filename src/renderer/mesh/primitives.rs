@@ -18,6 +18,10 @@ pub fn quad() -> Mesh {
     }
 }
 
+pub fn blit_quad() -> Mesh {
+    quad().as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
+}
+
 //gives a cube with width 1 and center as origin
 pub fn cube() -> Mesh {
     let rotations: Vec<AffineTransform3D> = vec!{

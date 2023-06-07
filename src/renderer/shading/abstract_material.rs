@@ -1,14 +1,12 @@
-use super::uniform::{GlobalVertexBlock, GlobalFragmentBlock};
-
 // Reason for the weird macro based code is that the type returned by the glium::uniform! macro is huge
 // (impractical to type out for each Material implementor) and depends on the input.
 // Trait method implementations require the return type to be specified explicitly (impl Trait doesn't work either),
 // so the value must be used on site in case of draw_mesh. This is why it isn't just a get_uniforms, but also handles rendering.
 // However, an individual Material implementor can reasonably define an uniform getter using impl Trait, and a macro can then implement draw_mesh.
 macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
-    fn draw_mesh<'a, 'b, V, I>(
+    fn draw_mesh<'a, 'b, T, V, I>(
         &self,
-        target: &mut glium::Frame,
+        target: &mut T,
         vertices: V,
         indeces: I,
         program: &glium::Program,
@@ -16,7 +14,7 @@ macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
         fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
-        where V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>
+        where T: glium::Surface, V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>
     {
         let uniforms = $get_uniforms_func(self);
         let uniforms = uniforms.add("vertex_uniforms", vertex_block);
@@ -25,7 +23,7 @@ macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
         target.draw(vertices, indeces, program, &uniforms, draw_parameters)
     }
 }}
-macro_rules! any_uniforms_storage {() => { glium::uniforms::UniformsStorage<impl glium::uniforms::AsUniformValue, impl glium::uniforms::Uniforms> }}
+macro_rules! any_uniforms_storage {() => { glium::uniforms::UniformsStorage<impl glium::uniforms::AsUniformValue + '_, impl glium::uniforms::Uniforms + '_> }}
 pub(crate) use implement_material_draw;
 pub(crate) use any_uniforms_storage;
 
@@ -34,17 +32,17 @@ pub trait Material {
     const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
     const PROGRAM_IDS: ShaderProgramIdContainer;
 
-    fn draw_mesh<'a, 'b, V, I>(
+    fn draw_mesh<'a, 'b, T, V, I>(
         &self,
-        target: &mut glium::Frame,
+        target: &mut T,
         vertices: V,
         indeces: I,
         program: &glium::Program,
-        vertex_block: &glium::uniforms::UniformBuffer<GlobalVertexBlock>,
-        fragment_block: &glium::uniforms::UniformBuffer<GlobalFragmentBlock>,
+        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock>,
+        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
-        where V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>;
+        where T: glium::Surface, V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>;
 }
 
 pub type ShaderProgramId = usize;

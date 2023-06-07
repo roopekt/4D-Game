@@ -584,6 +584,7 @@ dependencies = [
  "glam",
  "glium",
  "glium-glyph",
+ "ouroboros",
  "rand",
  "rust-fontconfig",
  "serde",

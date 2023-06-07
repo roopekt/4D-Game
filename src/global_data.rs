@@ -33,15 +33,17 @@ impl GlobalData {
     }
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum VisualMode {
     Normal3D,
-    Degenerate3D
+    Degenerate3D,
+    Combined3D
 }
 impl VisualMode {
     pub fn from_int(int: u32) -> Self {
         match int {
             1 => Self::Normal3D,
+            2 => Self::Combined3D,
             3 => Self::Degenerate3D,
             _ => panic!("Unknown visual mode {int}")
         }

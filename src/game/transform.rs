@@ -38,6 +38,11 @@ pub struct AffineTransform3D {
 }
 
 impl AffineTransform3D {
+    pub const IDENTITY: Self = Self {
+        linear_transform: Mat3::IDENTITY,
+        translation: Vec3::ZERO
+    };
+
     pub fn from_transform3D_ignore_scale(transform: &Transform3D) -> Self {
         Self {
             linear_transform: transform.orientation,

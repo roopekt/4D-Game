@@ -37,6 +37,9 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
                     event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Key1), state: ElementState::Pressed, .. } => {
                         global_data.visual_mode = VisualMode::from_int(1);
                     },
+                    event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Key2), state: ElementState::Pressed, .. } => {
+                        global_data.visual_mode = VisualMode::from_int(2);
+                    },
                     event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Key3), state: ElementState::Pressed, .. } => {
                         global_data.visual_mode = VisualMode::from_int(3);
                     }

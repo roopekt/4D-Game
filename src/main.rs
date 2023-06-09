@@ -6,6 +6,7 @@ pub mod events;
 pub mod game;
 pub mod renderer;
 pub mod info_screen;
+pub mod errors;
 
 use glium::glutin;
 use global_data::GlobalData;

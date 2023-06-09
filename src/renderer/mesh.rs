@@ -7,6 +7,7 @@ use crate::game::transform::{AffineTransform3D, AffineTransform4D};
 
 type IndexT = u16;
 
+#[derive(Clone)]
 pub struct Mesh3D {
     pub vertices: Vec<Vertex3D>,
     pub indeces: Vec<IndexT>
@@ -35,6 +36,7 @@ impl Mesh3D {
         return self;
     }
 }
+#[derive(Clone)]
 pub struct Mesh4D {
     pub vertices: Vec<Vertex4D>,
     pub indeces: Vec<IndexT>
@@ -161,4 +163,3 @@ impl Vertex4D {
         self.normal = normal_vec.into(); 
     }
 }
-

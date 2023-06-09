@@ -1,14 +1,14 @@
-use super::{Mesh, Vertex};
+use super::{Mesh3D, Vertex3D};
 use glam::{Mat3, Vec3};
 use crate::game::transform::{AffineTransform3D, Transform3D};
 
-pub fn quad() -> Mesh {
-    Mesh {
+pub fn quad_3D() -> Mesh3D {
+    Mesh3D {
         vertices: vec!(
-            Vertex { position: [-0.5, -0.5, 0.0], normal: [0.0, 0.0, 1.0] },
-            Vertex { position: [ 0.5, -0.5, 0.0], normal: [0.0, 0.0, 1.0] },
-            Vertex { position: [ 0.5,  0.5, 0.0], normal: [0.0, 0.0, 1.0] },
-            Vertex { position: [-0.5,  0.5, 0.0], normal: [0.0, 0.0, 1.0] }
+            Vertex3D { position: [-0.5, -0.5, 0.0], normal: [0.0, 0.0, 1.0] },
+            Vertex3D { position: [ 0.5, -0.5, 0.0], normal: [0.0, 0.0, 1.0] },
+            Vertex3D { position: [ 0.5,  0.5, 0.0], normal: [0.0, 0.0, 1.0] },
+            Vertex3D { position: [-0.5,  0.5, 0.0], normal: [0.0, 0.0, 1.0] }
         ),
         indeces: vec!(
             0, 1, 2,
@@ -17,12 +17,12 @@ pub fn quad() -> Mesh {
     }
 }
 
-pub fn blit_quad() -> Mesh {
-    quad().as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
+pub fn blit_quad() -> Mesh3D {
+    quad_3D().as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
 }
 
 //gives a cube with width 1 and origo as the center
-pub fn cube() -> Mesh {
+pub fn cube_3D() -> Mesh3D {
     //construct 6 linear transformations (1 per face) such that the Z basis vector gets swapped for any positive or negative basis vector exactly once
     let mut orthogonal_transforms: Vec<AffineTransform3D> = Vec::with_capacity(2*3);
     for i in 0..3 {
@@ -42,6 +42,6 @@ pub fn cube() -> Mesh {
 
     return orthogonal_transforms
         .iter()
-        .map(|orthogonal_transform| quad().as_transformed(&(*orthogonal_transform * translation)))
+        .map(|orthogonal_transform| quad_3D().as_transformed(&(*orthogonal_transform * translation)))
         .sum();
 }

@@ -4,14 +4,14 @@
 // so the value must be used on site in case of draw_mesh. This is why it isn't just a get_uniforms, but also handles rendering.
 // However, an individual Material implementor can reasonably define an uniform getter using impl Trait, and a macro can then implement draw_mesh.
 macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
-    fn draw_mesh<'a, 'b, T, V, I>(
+    fn draw_mesh_3D<'a, 'b, T, V, I>(
         &self,
         target: &mut T,
         vertices: V,
         indeces: I,
         program: &glium::Program,
-        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock>,
-        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
+        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock3D>,
+        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock3D>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
         where T: glium::Surface, V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>
@@ -32,14 +32,14 @@ pub trait Material {
     const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
     const PROGRAM_IDS: ShaderProgramIdContainer;
 
-    fn draw_mesh<'a, 'b, T, V, I>(
+    fn draw_mesh_3D<'a, 'b, T, V, I>(
         &self,
         target: &mut T,
         vertices: V,
         indeces: I,
         program: &glium::Program,
-        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock>,
-        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock>,
+        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock3D>,
+        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock3D>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
         where T: glium::Surface, V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>;

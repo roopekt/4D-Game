@@ -6,13 +6,13 @@ use glam::{Mat3, Vec3, Quat};
 use rand::{rngs::SmallRng, SeedableRng, Rng};
 use std::vec::Vec;
 use super::transform::Transform3D;
-use crate::renderer::renderable_object::RenderableObject;
+use crate::renderer::renderable_object::RenderableObject3D;
 use crate::renderer::shading::materials;
 
 pub struct World {
     pub last_update_time: Instant,
     pub player: Player,
-    pub static_scene: Vec<RenderableObject<materials::SingleColorMaterial3D>>
+    pub static_scene: Vec<RenderableObject3D<materials::SingleColorMaterial3D>>
 }
 impl World {
     pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
@@ -24,8 +24,8 @@ impl World {
     }
 }
 
-fn get_static_scene_objects(display: &glium::Display) -> Vec<RenderableObject<materials::SingleColorMaterial3D>> {
-    let mut objects: Vec<RenderableObject<materials::SingleColorMaterial3D>> = Vec::new();
+fn get_static_scene_objects(display: &glium::Display) -> Vec<RenderableObject3D<materials::SingleColorMaterial3D>> {
+    let mut objects: Vec<RenderableObject3D<materials::SingleColorMaterial3D>> = Vec::new();
     let mut rng = SmallRng::from_entropy();
 
     let floor_trs = Transform3D {
@@ -33,9 +33,9 @@ fn get_static_scene_objects(display: &glium::Display) -> Vec<RenderableObject<ma
         orientation: Mat3::from_quat(Quat::from_rotation_arc_colinear(Vec3::Z, Vec3::Y)),
         ..Default::default()
     };
-    objects.push(RenderableObject {
+    objects.push(RenderableObject3D {
         transform: floor_trs.into(),
-        mesh: mesh::primitives::quad().upload_static(display),
+        mesh: mesh::primitives::quad_3D().upload_static(display),
         material: materials::SingleColorMaterial3D { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
     });
 
@@ -44,9 +44,9 @@ fn get_static_scene_objects(display: &glium::Display) -> Vec<RenderableObject<ma
         let position = Vec3::new(random_float(&mut rng) * SPAWN_RADIUS, 0.3, random_float(&mut rng) * SPAWN_RADIUS);
         let orientation = Mat3::from_quat(Quat::from_xyzw(random_float(&mut rng), random_float(&mut rng), random_float(&mut rng), random_float(&mut rng)).normalize());
 
-        objects.push(RenderableObject {
+        objects.push(RenderableObject3D {
             transform: Transform3D { position, orientation, ..Default::default() }.into(),
-            mesh: mesh::primitives::cube().upload_static(display),
+            mesh: mesh::primitives::cube_3D().upload_static(display),
             material: materials::SingleColorMaterial3D { albedo_color: random_color(&mut rng) }
         });
     }

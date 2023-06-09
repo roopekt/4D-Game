@@ -11,17 +11,17 @@ use glium::{Surface, framebuffer, texture};
 use shading::abstract_material::Material;
 use shading::materials;
 use shading::shaders::ShaderProgramContainer;
-use shading::uniform::{GlobalVertexBlock, GlobalFragmentBlock, UniformBlock};
+use shading::uniform::{GlobalVertexBlock3D, GlobalFragmentBlock3D, UniformBlock};
 use shading::glsl_conversion::ToStd140;
 use crate::options::AsVector;
-use self::renderable_object::RenderableObject;
+use self::renderable_object::RenderableObject3D;
 use crate::info_screen::render_info_screen;
 
 pub struct Renderer<'a> {
     shader_programs: ShaderProgramContainer,
     text_renderer: text_rendering::TextRenderer<'a>,
     alternate_target: AlternateTarget,
-    BLIT_QUAD: mesh::StaticUploadedMesh
+    BLIT_QUAD: mesh::StaticUploadedMesh3D
 }
 impl<'a> Renderer<'a> {
     pub fn new(display: &glium::Display, global_data: &GlobalData) -> Self {
@@ -58,7 +58,7 @@ impl<'a> Renderer<'a> {
         let inverse_camera_trs_matrix = world.player.get_camera_trs_matrix().inverse();
         let projection_matrix = player_projection_matrix_3D(global_data);
 
-        let fragment_block = GlobalFragmentBlock {
+        let fragment_block = GlobalFragmentBlock3D {
             light_position: world.player.get_camera_world_position().std140(),
             light_color: global_data.options.dev.light.light_color.as_vector().std140(),
             light_ambient_color: global_data.options.dev.light.ambient_color.as_vector().std140(),
@@ -118,13 +118,13 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    fn render_object<M: Material, T: glium::Surface>(&mut self, object: &RenderableObject<M>, target: &mut T, params: &ObjectDrawParameters) {
+    fn render_object<M: Material, T: glium::Surface>(&mut self, object: &RenderableObject3D<M>, target: &mut T, params: &ObjectDrawParameters) {
         let to_world_transform = object.transform;
         let to_view_transform = params.inverse_camera_trs_matrix * to_world_transform;
         let to_clip_transform = params.projection_matrix * to_view_transform;
         let normal_matrix = to_world_transform.point_transform_to_normal_transform();
         
-        let vertex_block = GlobalVertexBlock {
+        let vertex_block = GlobalVertexBlock3D {
             to_world_transform: to_world_transform.std140(),
             to_view_transform: to_view_transform.std140(),
             to_clip_transform: to_clip_transform.std140(),
@@ -141,7 +141,7 @@ impl<'a> Renderer<'a> {
 
         if params.render_to_alternate {
             self.alternate_target.with_frame_buffer_mut(|alternate_target| {
-                object.material.draw_mesh(
+                object.material.draw_mesh_3D(
                     alternate_target,
                     &object.mesh.vertices,
                     &object.mesh.indeces,
@@ -153,7 +153,7 @@ impl<'a> Renderer<'a> {
             });
         }
         else {
-            object.material.draw_mesh(
+            object.material.draw_mesh_3D(
                 target,
                 &object.mesh.vertices,
                 &object.mesh.indeces,
@@ -253,7 +253,7 @@ struct ObjectDrawParameters<'a> {
     pub display: &'a glium::Display,
     pub inverse_camera_trs_matrix: AffineTransform3D,
     pub projection_matrix: AffineTransform3D,
-    pub fragment_block_buffer: glium::uniforms::UniformBuffer<GlobalFragmentBlock>,
+    pub fragment_block_buffer: glium::uniforms::UniformBuffer<GlobalFragmentBlock3D>,
     pub glium_draw_parameters: glium::DrawParameters<'a>,
     pub visual_mode: VisualMode,
     pub render_to_alternate: bool,

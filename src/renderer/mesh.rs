@@ -19,9 +19,13 @@ impl Mesh3D {
     };
 
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh3D {
+        self.upload_static_with_topology(display, glium::index::PrimitiveType::TrianglesList)
+    }
+
+    pub fn upload_static_with_topology(&self, display: &glium::Display, topology: glium::index::PrimitiveType) -> StaticUploadedMesh3D {
         StaticUploadedMesh3D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: glium::IndexBuffer::immutable(display, glium::index::PrimitiveType::TrianglesList, &self.indeces).unwrap()
+            indeces: glium::IndexBuffer::immutable(display, topology, &self.indeces).unwrap()
         }
     }
 
@@ -48,9 +52,13 @@ impl Mesh4D {
     };
 
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh4D {
+        self.upload_static_with_topology(display, glium::index::PrimitiveType::Points)
+    }
+
+    pub fn upload_static_with_topology(&self, display: &glium::Display, topology: glium::index::PrimitiveType) -> StaticUploadedMesh4D {
         StaticUploadedMesh4D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: glium::IndexBuffer::immutable(display, glium::index::PrimitiveType::TrianglesList, &self.indeces).unwrap()
+            indeces: glium::IndexBuffer::immutable(display, topology, &self.indeces).unwrap()
         }
     }
 

@@ -1,9 +1,10 @@
 use super::abstract_material::{Material, ShaderProgramId, ShaderProgramIdContainer, ProgramDescriptor, implement_material_draw, any_uniforms_storage};
 use glam::Vec3;
 
-pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 2*2] = [
+pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 3*2] = [
     SingleColorMaterial3D::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorMaterial3D::DEGENERATE3D_PROGRAM_DESCRIPTOR,
-    BlitMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, BlitMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR
+    BlitMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, BlitMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR,
+    SingleColorScreenSpaceMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorScreenSpaceMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR
 ];
 
 #[derive(Debug, Copy, Clone)]
@@ -43,6 +44,26 @@ impl BlitMaterial<'_> {
     pub fn get_uniforms(&self) -> any_uniforms_storage!() {
         glium::uniform! {
             texture_to_blit: self.texture
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct SingleColorScreenSpaceMaterial {
+    pub color: Vec3
+}
+impl Material for SingleColorScreenSpaceMaterial {
+    const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new(
+        "simple/minimal.vert", "unlit_single_color.frag");
+    const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = Self::NORMAL3D_PROGRAM_DESCRIPTOR;
+    
+    const PROGRAM_IDS: ShaderProgramIdContainer = get_program_id_container::<Self>();
+    implement_material_draw!(Self::get_uniforms);
+}
+impl SingleColorScreenSpaceMaterial {
+    pub fn get_uniforms(&self) -> any_uniforms_storage!() {
+        glium::uniform! {
+            color: self.color.to_array()
         }
     }
 }

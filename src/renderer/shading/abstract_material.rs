@@ -30,6 +30,7 @@ pub(crate) use any_uniforms_storage;
 pub trait Material {
     const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
     const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
+    const DEGENERATE4D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
     const PROGRAM_IDS: ShaderProgramIdContainer;
 
     fn draw_mesh_3D<'a, 'b, T, V, I>(
@@ -48,7 +49,8 @@ pub trait Material {
 pub type ShaderProgramId = usize;
 pub struct ShaderProgramIdContainer {
     pub normal_3D: ShaderProgramId,
-    pub degenerate_3D: ShaderProgramId
+    pub degenerate_3D: ShaderProgramId,
+    pub degenerate_4D: ShaderProgramId
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

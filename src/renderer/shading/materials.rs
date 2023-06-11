@@ -1,10 +1,10 @@
 use super::abstract_material::{Material, ShaderProgramId, ShaderProgramIdContainer, ProgramDescriptor, implement_material_draw, any_uniforms_storage};
 use glam::Vec3;
 
-pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 3*2] = [
-    SingleColorMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR,
-    BlitMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, BlitMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR,
-    SingleColorScreenSpaceMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorScreenSpaceMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR
+pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 3*3] = [
+    SingleColorMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR, SingleColorMaterial::DEGENERATE4D_PROGRAM_DESCRIPTOR,
+    BlitMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, BlitMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR, BlitMaterial::DEGENERATE4D_PROGRAM_DESCRIPTOR,
+    SingleColorScreenSpaceMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorScreenSpaceMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR, SingleColorScreenSpaceMaterial::DEGENERATE4D_PROGRAM_DESCRIPTOR
 ];
 
 #[derive(Debug, Copy, Clone)]
@@ -13,9 +13,11 @@ pub struct SingleColorMaterial {
 }
 impl Material for SingleColorMaterial {
     const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new(
-        "default_3D.vert", "single_color.frag");
+        "3D/default.vert", "3D/single_color.frag");
     const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new_with_geometry(
-        "default_sliced_3D.vert", "single_color.frag", "sliced_3D.geom");
+        "3D/default_sliced.vert", "3D/single_color.frag", "3D/sliced.geom");
+    const DEGENERATE4D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new_with_geometry(
+        "4D/default_sliced.vert", "4D/single_color.frag", "4D/sliced.geom");
     
     const PROGRAM_IDS: ShaderProgramIdContainer = get_program_id_container::<Self>();
     implement_material_draw!(Self::get_uniforms);
@@ -36,6 +38,7 @@ impl Material for BlitMaterial<'_> {
     const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new(
         "simple/blit.vert", "simple/blit.frag");
     const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = Self::NORMAL3D_PROGRAM_DESCRIPTOR;
+    const DEGENERATE4D_PROGRAM_DESCRIPTOR: ProgramDescriptor = Self::NORMAL3D_PROGRAM_DESCRIPTOR;
     
     const PROGRAM_IDS: ShaderProgramIdContainer = get_program_id_container::<Self>();
     implement_material_draw!(Self::get_uniforms);
@@ -54,8 +57,9 @@ pub struct SingleColorScreenSpaceMaterial {
 }
 impl Material for SingleColorScreenSpaceMaterial {
     const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new(
-        "simple/minimal.vert", "unlit_single_color.frag");
+        "simple/minimal.vert", "simple/unlit_single_color.frag");
     const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = Self::NORMAL3D_PROGRAM_DESCRIPTOR;
+    const DEGENERATE4D_PROGRAM_DESCRIPTOR: ProgramDescriptor = Self::NORMAL3D_PROGRAM_DESCRIPTOR;
     
     const PROGRAM_IDS: ShaderProgramIdContainer = get_program_id_container::<Self>();
     implement_material_draw!(Self::get_uniforms);
@@ -72,10 +76,12 @@ impl SingleColorScreenSpaceMaterial {
 const fn get_program_id_container<T: Material>() -> ShaderProgramIdContainer {
     ShaderProgramIdContainer {
         normal_3D: get_program_id(T::NORMAL3D_PROGRAM_DESCRIPTOR),
-        degenerate_3D: get_program_id(T::DEGENERATE3D_PROGRAM_DESCRIPTOR)
+        degenerate_3D: get_program_id(T::DEGENERATE3D_PROGRAM_DESCRIPTOR),
+        degenerate_4D: get_program_id(T::DEGENERATE4D_PROGRAM_DESCRIPTOR)
     }
 }
 
+//returns an index into PROGRAM_DESCRIPTORS
 const fn get_program_id(program_descriptor: ProgramDescriptor) -> ShaderProgramId {
     let mut i: ShaderProgramId = 0;
     while i < PROGRAM_DESCRIPTORS.len() {

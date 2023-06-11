@@ -16,6 +16,8 @@ in vec3 position;
 in vec3 normal;
 
 out GS_IN {
+    vec3 clip_position;
+    float depth;
     vec3 world_position;
     vec3 world_normal;
 } v_out;
@@ -28,7 +30,6 @@ void main() {
     v_out.world_position = affine_transform(to_world_transform, position);
     v_out.world_normal = normal_matrix * normal;
 
-    vec3 clip_position = affine_transform(to_clip_transform, position);
-    float depth = affine_transform(to_view_transform, position).z;
-    gl_Position = vec4(clip_position, depth);
+    v_out.clip_position = affine_transform(to_clip_transform, position);
+    v_out.depth = affine_transform(to_view_transform, position).z;
 }

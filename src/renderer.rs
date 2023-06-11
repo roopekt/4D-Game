@@ -3,7 +3,7 @@ pub mod mesh;
 pub mod shading;
 pub mod text_rendering;
 
-use crate::game::world::World;
+use crate::game::world::World3D;
 use crate::game::player::player_projection_matrix_3D;
 use crate::game::transform::AffineTransform3D;
 use crate::global_data::{GlobalData, VisualMode};
@@ -35,7 +35,7 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    pub fn render_frame(&mut self, display: &glium::Display, world: &World, global_data: &mut GlobalData) {
+    pub fn render_frame(&mut self, display: &glium::Display, world: &World3D, global_data: &mut GlobalData) {
         let mut target = display.draw();
         target.clear_color_and_depth(
             (0.0, 0.0, 1.0, 1.0),
@@ -54,7 +54,7 @@ impl<'a> Renderer<'a> {
         &mut self,
         target: &mut glium::Frame,
         display: &glium::Display,
-        world: &World,
+        world: &World3D,
         global_data: &GlobalData)
     {
         let inverse_camera_trs_matrix = world.player.get_camera_trs_matrix().inverse();
@@ -115,7 +115,7 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    fn render_objects_simple_visual_mode<T: glium::Surface>(&mut self, world: &World, target: &mut T, params: &ObjectDrawParameters) {
+    fn render_objects_simple_visual_mode<T: glium::Surface>(&mut self, world: &World3D, target: &mut T, params: &ObjectDrawParameters) {
         for object in &world.static_scene {
             self.render_object(object, target, params);
         }

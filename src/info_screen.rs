@@ -1,7 +1,7 @@
 use crate::options::AsVector;
 use crate::renderer::text_rendering; 
 use crate::global_data::GlobalData;
-use crate::game::world::World;
+use crate::game::world::World3D;
 use glium_glyph::glyph_brush;
 use std::fmt::Display;
 use glam::Vec2;
@@ -11,7 +11,7 @@ pub fn render_info_screen(
     target: &mut glium::Frame,
     display: &glium::Display,
     text_renderer: &mut text_rendering::TextRenderer,
-    world: &World,
+    world: &World3D,
     global_data: &GlobalData)
 {
     let resolution = CustomFormatted(global_data.resolution);

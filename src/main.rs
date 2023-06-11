@@ -21,7 +21,7 @@ fn main() {
     let display = get_display(&glutin_event_loop, &global_data);
     
     let mut input_handler = events::input::InputHandler::new();
-    let mut world = game::world::World::new(&global_data, &display);
+    let mut world = game::world::World3D::new(&global_data, &display);
     let mut renderer = Renderer::new(&display, &global_data);
 
     events::set_mouse_grab(true, &mut global_data, &display);

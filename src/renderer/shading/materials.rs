@@ -2,16 +2,16 @@ use super::abstract_material::{Material, ShaderProgramId, ShaderProgramIdContain
 use glam::Vec3;
 
 pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 3*2] = [
-    SingleColorMaterial3D::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorMaterial3D::DEGENERATE3D_PROGRAM_DESCRIPTOR,
+    SingleColorMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR,
     BlitMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, BlitMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR,
     SingleColorScreenSpaceMaterial::NORMAL3D_PROGRAM_DESCRIPTOR, SingleColorScreenSpaceMaterial::DEGENERATE3D_PROGRAM_DESCRIPTOR
 ];
 
 #[derive(Debug, Copy, Clone)]
-pub struct SingleColorMaterial3D {
+pub struct SingleColorMaterial {
     pub albedo_color: Vec3
 }
-impl Material for SingleColorMaterial3D {
+impl Material for SingleColorMaterial {
     const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new(
         "default_3D.vert", "single_color.frag");
     const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor = ProgramDescriptor::new_with_geometry(
@@ -20,7 +20,7 @@ impl Material for SingleColorMaterial3D {
     const PROGRAM_IDS: ShaderProgramIdContainer = get_program_id_container::<Self>();
     implement_material_draw!(Self::get_uniforms);
 }
-impl SingleColorMaterial3D {
+impl SingleColorMaterial {
     fn get_uniforms(&self) -> any_uniforms_storage!() {
         glium::uniform! {
             albedo: self.albedo_color.to_array()

@@ -1,40 +1,58 @@
-use super::player::Player;
+use super::player::Player3D;
 use crate::global_data::GlobalData;
 use crate::renderer::mesh;
 use std::time::Instant;
-use glam::{Mat3, Vec3, Quat};
+use glam::{Mat3, Vec3, Mat4, Vec4};
 use std::vec::Vec;
-use super::transform::Transform3D;
-use crate::renderer::renderable_object::RenderableObject3D;
+use super::transform::{Transform3D, Transform4D};
+use crate::renderer::renderable_object::{RenderableObject3D, RenderableObject4D};
 use crate::renderer::shading::materials;
 
-pub struct World {
+pub struct World3D {
     pub last_update_time: Instant,
-    pub player: Player,
-    pub static_scene: Vec<RenderableObject3D<materials::SingleColorMaterial3D>>
+    pub player: Player3D,
+    pub static_scene: Vec<RenderableObject3D<materials::SingleColorMaterial>>
 }
-impl World {
+impl World3D {
     pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
-        World {
+        Self {
             last_update_time: Instant::now(),
-            player: Player::new(global_data),
-            static_scene: get_static_scene_objects(display)
+            player: Player3D::new(global_data),
+            static_scene: get_static_scene_objects_3D(display)
+        }
+    }
+}
+pub struct World4D {
+    pub last_update_time: Instant,
+    pub player: Player3D,
+    pub static_scene: Vec<RenderableObject4D<materials::SingleColorMaterial>>
+}
+impl World4D {
+    pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
+        Self {
+            last_update_time: Instant::now(),
+            player: Player3D::new(global_data),
+            static_scene: get_static_scene_objects_4D(display)
         }
     }
 }
 
-fn get_static_scene_objects(display: &glium::Display) -> Vec<RenderableObject3D<materials::SingleColorMaterial3D>> {
-    let mut objects: Vec<RenderableObject3D<materials::SingleColorMaterial3D>> = Vec::new();
+fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject3D<materials::SingleColorMaterial>> {
+    let mut objects: Vec<RenderableObject3D<materials::SingleColorMaterial>> = Vec::new();
 
     //floor
     objects.push(RenderableObject3D {
         transform: Transform3D {
             scale: Vec3::splat(100.0),
-            orientation: Mat3::from_quat(Quat::from_rotation_arc_colinear(Vec3::Z, Vec3::Y)),
+            orientation: Mat3::from_cols_array(&[
+                1.0, 0.0, 0.0,
+                0.0, 0.0, 1.0,
+                0.0, 1.0, 0.0
+            ]).transpose(),//transpose, so that the columns above actually are columns
             ..Default::default()
         }.into(),
         mesh: mesh::primitives::quad_3D().upload_static(display),
-        material: materials::SingleColorMaterial3D { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
+        material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
     });
 
     //cube
@@ -44,7 +62,38 @@ fn get_static_scene_objects(display: &glium::Display) -> Vec<RenderableObject3D<
             ..Default::default()
         }.into(),
         mesh: mesh::primitives::cube_3D().upload_static(display),
-        material: materials::SingleColorMaterial3D { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
+        material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
+    });
+
+    objects
+}
+fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject4D<materials::SingleColorMaterial>> {
+    let mut objects: Vec<RenderableObject4D<materials::SingleColorMaterial>> = Vec::new();
+
+    //floor
+    objects.push(RenderableObject4D {
+        transform: Transform4D {
+            scale: Vec4::splat(100.0),
+            orientation: Mat4::from_cols_array(&[
+                1.0, 0.0, 0.0, 0.0,
+                0.0, 1.0, 0.0, 0.0,
+                0.0, 0.0, 0.0, 1.0,
+                0.0, 0.0, 1.0, 0.0
+            ]).transpose(),//transpose, so that the columns above actually are columns,
+            ..Default::default()
+        }.into(),
+        mesh: mesh::primitives::cube_4D().upload_static(display),
+        material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
+    });
+
+    //tesseract
+    objects.push(RenderableObject4D {
+        transform: Transform4D {
+            position: Vec4::new(0.0, 1.0, 3.0, 0.0),
+            ..Default::default()
+        }.into(),
+        mesh: mesh::primitives::tesseract_4D().upload_static(display),
+        material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
 
     objects

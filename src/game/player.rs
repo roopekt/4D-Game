@@ -5,12 +5,12 @@ use glam::{Vec3, Vec2, Mat3, Mat4, Affine3A};
 use std::f32::consts::PI;
 use glium::glutin::event::VirtualKeyCode;
 
-pub struct Player {
+pub struct Player3D {
     pub transform: Transform3D,
     pub relative_camera_transform: Transform3D,
     pub look_direction: Vec2// (around y, around x), radians
 }
-impl Player {
+impl Player3D {
     pub fn new(_global_data: &GlobalData) -> Self {
         Self {
             transform: Transform3D::IDENTITY,

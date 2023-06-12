@@ -1,6 +1,6 @@
 {
     "camera": {
-        "fov": 30,
+        "fov": 60,
         "near_plane": 0.1,
         "far_plane": 500
     },

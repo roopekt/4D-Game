@@ -41,7 +41,7 @@ Vertex lerp_vertex(Vertex a, Vertex b, float t) {
 }
 
 Vertex get_intersection_point_for_line(Line line, out bool is_proper) {
-    float t = inverse_lerp_float(line.A.clip_pos.y, line.B.clip_pos.y, 0.0);//because we want to output a vector with y == 0
+    float t = inverse_lerp_float(line.A.clip_pos.x, line.B.clip_pos.x, 0.0);//because we want to output a vector with x == 0
     is_proper = (0.0 < t) && (t < 1.0);
 
     return lerp_vertex(line.A, line.B, t);
@@ -84,8 +84,8 @@ Vertex[3] get_vertices() {
 void emit_quad(Line line) {
     //note that perspective division happens after the geometry shader has run
     gl_Position = vec4(
-        line.A.clip_pos.x,
        -line.A.depth,
+        line.A.clip_pos.y,
         line.A.clip_pos.z,
         line.A.depth
     );
@@ -94,8 +94,8 @@ void emit_quad(Line line) {
     EmitVertex();
 
     gl_Position = vec4(
-        line.A.clip_pos.x,
         line.A.depth,
+        line.A.clip_pos.y,
         line.A.clip_pos.z,
         line.A.depth
     );
@@ -104,8 +104,8 @@ void emit_quad(Line line) {
     EmitVertex();
 
     gl_Position = vec4(
-        line.B.clip_pos.x,
        -line.B.depth,
+        line.B.clip_pos.y,
         line.B.clip_pos.z,
         line.B.depth
     );
@@ -114,8 +114,8 @@ void emit_quad(Line line) {
     EmitVertex();
 
     gl_Position = vec4(
-        line.B.clip_pos.x,
         line.B.depth,
+        line.B.clip_pos.y,
         line.B.clip_pos.z,
         line.B.depth
     );

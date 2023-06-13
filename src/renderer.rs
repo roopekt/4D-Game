@@ -22,7 +22,7 @@ pub struct Renderer<'a> {
     text_renderer: text_rendering::TextRenderer<'a>,
     alternate_target: AlternateTarget,
     BLIT_QUAD: mesh::StaticUploadedMesh3D,
-    HORIZONTAL_LINE: mesh::StaticUploadedMesh3D
+    VERTICAL_LINE: mesh::StaticUploadedMesh3D
 }
 impl<'a> Renderer<'a> {
     pub fn new(display: &glium::Display, global_data: &GlobalData) -> Self {
@@ -31,7 +31,7 @@ impl<'a> Renderer<'a> {
             text_renderer: text_rendering::TextRenderer::new(display, global_data),
             alternate_target: AlternateTarget::build(display),
             BLIT_QUAD: mesh::primitives::blit_quad().upload_static(display),
-            HORIZONTAL_LINE: mesh::primitives::horizontal_line().upload_static_with_topology(display, glium::index::PrimitiveType::LinesList)
+            VERTICAL_LINE: mesh::primitives::vertical_line().upload_static_with_topology(display, glium::index::PrimitiveType::LinesList)
         }
     }
 
@@ -98,7 +98,7 @@ impl<'a> Renderer<'a> {
             self.render_objects_simple_visual_mode(world, target, &object_draw_parameters);
 
             self.blend_alternate_target_onto_main_target(target, global_data.options.user.graphics.combined_render_degenerate_strength);
-            self.draw_horizontal_line(target);
+            self.draw_vertical_line(target);
         }
         else {
             let object_draw_parameters = ObjectDrawParameters {
@@ -207,15 +207,15 @@ impl<'a> Renderer<'a> {
         ).unwrap();
     }
 
-    fn draw_horizontal_line(&self, target: &mut glium::Frame) {
+    fn draw_vertical_line(&self, target: &mut glium::Frame) {
         let material = materials::SingleColorScreenSpaceMaterial {
             color: glam::Vec3::new(0.0, 0.0, 0.0)
         };
         let draw_parameters = glium::DrawParameters { ..Default::default() };
 
         target.draw(
-            &self.HORIZONTAL_LINE.vertices,
-            &self.HORIZONTAL_LINE.indeces,
+            &self.VERTICAL_LINE.vertices,
+            &self.VERTICAL_LINE.indeces,
             &self.shader_programs.get_program(materials::SingleColorScreenSpaceMaterial::PROGRAM_IDS.normal_3D),
             &material.get_uniforms(),
             &draw_parameters

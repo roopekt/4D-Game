@@ -41,7 +41,7 @@ Vertex lerp_vertex(Vertex a, Vertex b, float t) {
 }
 
 Vertex get_intersection_point_for_line(Line line, out bool is_proper) {
-    float t = inverse_lerp_float(line.A.clip_pos.z, line.B.clip_pos.z, 0.0);//+Z is up
+    float t = inverse_lerp_float(line.A.clip_pos.x, line.B.clip_pos.x, 0.0);
     is_proper = (0.0 < t) && (t < 1.0);
 
     return lerp_vertex(line.A, line.B, t);
@@ -92,17 +92,17 @@ void emit_triangles(Vertex[6] intersections, int intersection_count) {
     }
 
     //note that perspective division happens after the geometry shader has run
-    gl_Position = vec4(intersections[0].clip_pos.xyw, intersections[0].depth);
+    gl_Position = vec4(intersections[0].clip_pos.yzw, intersections[0].depth);
     v_out.world_position = intersections[0].world_pos;
     v_out.world_normal = intersections[0].world_normal;
     EmitVertex();
 
-    gl_Position = vec4(intersections[1].clip_pos.xyw, intersections[1].depth);
+    gl_Position = vec4(intersections[1].clip_pos.yzw, intersections[1].depth);
     v_out.world_position = intersections[1].world_pos;
     v_out.world_normal = intersections[1].world_normal;
     EmitVertex();
 
-    gl_Position = vec4(intersections[2].clip_pos.xyw, intersections[2].depth);
+    gl_Position = vec4(intersections[2].clip_pos.yzw, intersections[2].depth);
     v_out.world_position = intersections[2].world_pos;
     v_out.world_normal = intersections[2].world_normal;
     EmitVertex();
@@ -127,7 +127,7 @@ void emit_triangles(Vertex[6] intersections, int intersection_count) {
         The connecting-line-property also shows why both triangulations of the quadrilateral
         are correct. */
 
-        gl_Position = vec4(intersections[3].clip_pos.xyw, intersections[3].depth);
+        gl_Position = vec4(intersections[3].clip_pos.yzw, intersections[3].depth);
         v_out.world_position = intersections[3].world_pos;
         v_out.world_normal = intersections[3].world_normal;
         EmitVertex();

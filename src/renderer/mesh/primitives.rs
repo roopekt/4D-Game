@@ -70,11 +70,11 @@ pub fn blit_quad() -> Mesh3D {
     quad_3D().as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
 }
 
-pub fn horizontal_line() -> Mesh3D {
+pub fn vertical_line() -> Mesh3D {
     Mesh3D {
         vertices: vec![
-            Vertex3D { position: [-1.0, 0.0, 0.0], normal: [0.0, 0.0, 0.0] },
-            Vertex3D { position: [ 1.0, 0.0, 0.0], normal: [0.0, 0.0, 0.0] }
+            Vertex3D { position: [0.0, -1.0, 0.0], normal: [0.0, 0.0, 0.0] },
+            Vertex3D { position: [0.0,  1.0, 0.0], normal: [0.0, 0.0, 0.0] }
         ],
         indeces: vec![0, 1]
     }

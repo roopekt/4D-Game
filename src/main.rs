@@ -11,7 +11,8 @@ pub mod errors;
 use glium::glutin;
 use global_data::GlobalData;
 use renderer::Renderer;
-use std::time::{Instant, Duration};
+use std::time::Instant;
+use spin_sleep::LoopHelper;
 
 fn main() {
     
@@ -26,34 +27,45 @@ fn main() {
 
     events::set_mouse_grab(true, &mut global_data, &display);
 
-    let mut last_frame_end_time = Instant::now();
-    let mut next_frame_start_time = Instant::now();
-    let time_epsilon = Duration::from_micros(100);
+    let mut frame_start_instant = Instant::now();
+
+    let mut max_FPS = global_data.options.user.graphics.max_fps;
+    let mut clock = LoopHelper::builder()
+        .report_interval_s(0.5)
+        .build_with_target_rate(max_FPS);
 
     glutin_event_loop.run(move |event, _, control_flow| {
-        
-        let this_call_start_time = Instant::now();
-        
-        events::handle_event(event, &mut input_handler, &mut global_data, &display);
-        
-        if this_call_start_time + time_epsilon > next_frame_start_time {
-            game::update_game(&mut world, &input_handler, &mut global_data);
-            renderer.render_frame(&display, &world, &mut global_data);
-            input_handler.reset_deltas();
-            
-            let single_frame_duration = Duration::from_secs(1).div_f32(global_data.options.user.graphics.max_fps);
-            next_frame_start_time = this_call_start_time + single_frame_duration;
+        match event {
+            glutin::event::Event::MainEventsCleared =>
+            {
+                //the end measurement is here so that event handling gets measured as well
+                let frame_end_instant = Instant::now();
+                global_data.uncapped_FPS = 1.0 / (frame_end_instant - frame_start_instant).as_secs_f32();
 
-            let now = Instant::now();
-            global_data.FPS = 1.0 / (now - last_frame_end_time).as_secs_f32();
-            last_frame_end_time = now;
+                clock.loop_sleep();
+
+                frame_start_instant = Instant::now();
+                clock.loop_start();
+                let correct_max_FPS = global_data.options.user.graphics.max_fps;
+                if max_FPS != correct_max_FPS {
+                    max_FPS = correct_max_FPS;
+                    clock.set_target_rate(max_FPS);
+                }
+                if let Some(FPS) = clock.report_rate() {
+                    global_data.FPS = FPS as f32;
+                }
+
+                game::update_game(&mut world, &input_handler, &mut global_data);
+                renderer.render_frame(&display, &world, &mut global_data);
+                input_handler.reset_deltas();
+            },
+            other => {
+                events::handle_event(other, &mut input_handler, &mut global_data, &display);
+            }
         }
-        
+
         if global_data.close_requested {
             *control_flow = glutin::event_loop::ControlFlow::Exit;
-        }
-        else {
-            *control_flow = glutin::event_loop::ControlFlow::WaitUntil(next_frame_start_time);
         }
     });
 }

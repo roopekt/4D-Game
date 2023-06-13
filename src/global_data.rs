@@ -5,6 +5,7 @@ pub struct GlobalData {
     pub close_requested: bool,
     pub resolution: UVec2,
     pub FPS: f32,
+    pub uncapped_FPS: f32,//estimate of what the FPS would be without capping
     pub options: Options,
     pub mouse_grabbed: bool,
     pub info_screen_visible: bool,
@@ -17,6 +18,7 @@ impl GlobalData {
             close_requested: false,
             resolution: UVec2::from_array(options.user.graphics.default_resolution),
             FPS: 0.0,
+            uncapped_FPS: 0.0,
             mouse_grabbed: false,
             info_screen_visible: false,
             visual_mode: VisualMode::from_int(options.user.default_mode),

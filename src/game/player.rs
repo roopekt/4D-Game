@@ -1,4 +1,4 @@
-use super::transform::{Transform3D, AffineTransform3D, matrix3x3};
+use super::transform::{Transform3D, AffineTransform3D, matrix3x3, rotation};
 use crate::events::input::InputHandler;
 use crate::global_data::GlobalData;
 use glam::{Vec3, Vec2, Mat3};
@@ -35,11 +35,11 @@ impl Player3D {
         pos_delta = self.transform.orientation * pos_delta;
         self.transform.position += pos_delta * delta_time * global_data.options.dev.player.walking_speed;
         
-        self.look_direction += input.mouse_delta() * global_data.options.user.input.mouse_sensitivity;
+        self.look_direction -= input.mouse_delta() * global_data.options.user.input.mouse_sensitivity;
         self.look_direction.x = self.look_direction.x.rem_euclid(2.0 * PI);//keep within reasonable range to prevent precision issues
         self.look_direction.y = self.look_direction.y.clamp(-PI / 2.0, PI / 2.0);
-        self.transform.orientation = Mat3::from_rotation_y(self.look_direction.x);
-        self.relative_camera_transform.orientation = Mat3::from_rotation_x(self.look_direction.y);
+        self.transform.orientation = rotation::around_y(self.look_direction.x);
+        self.relative_camera_transform.orientation = rotation::around_x(self.look_direction.y);
     }
 
     pub fn get_trs_matrix(&self) -> AffineTransform3D {

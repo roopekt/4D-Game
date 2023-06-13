@@ -1,6 +1,7 @@
 pub mod affine_transform;
-pub use affine_transform::{AffineTransform3D, AffineTransform4D};
+pub mod rotation;
 
+pub use affine_transform::{AffineTransform3D, AffineTransform4D};
 use glam::{Vec3, Mat3, Vec4, Mat4};
 
 #[derive(Debug, Clone, Copy)]
@@ -66,9 +67,9 @@ macro_rules! matrix3x3 {
         $e20:expr, $e21:expr, $e22:expr
     ) => {
         Mat3 {
-            x_axis: Vec3::new($e00, $e10, $e20),
-            y_axis: Vec3::new($e01, $e11, $e21),
-            z_axis: Vec3::new($e02, $e12, $e22)
+            x_axis: glam::Vec3::new($e00, $e10, $e20),
+            y_axis: glam::Vec3::new($e01, $e11, $e21),
+            z_axis: glam::Vec3::new($e02, $e12, $e22)
         }
     };
 }
@@ -80,10 +81,10 @@ macro_rules! matrix4x4 {
         $e30:expr, $e31:expr, $e32:expr, $e33:expr
     ) => {
         Mat4 {
-            x_axis: Vec4::new($e00, $e10, $e20, $e30),
-            y_axis: Vec4::new($e01, $e11, $e21, $e31),
-            z_axis: Vec4::new($e02, $e12, $e22, $e32),
-            w_axis: Vec4::new($e03, $e13, $e23, $e33),
+            x_axis: glam::Vec4::new($e00, $e10, $e20, $e30),
+            y_axis: glam::Vec4::new($e01, $e11, $e21, $e31),
+            z_axis: glam::Vec4::new($e02, $e12, $e22, $e32),
+            w_axis: glam::Vec4::new($e03, $e13, $e23, $e33),
         }
     };
 }

@@ -57,3 +57,34 @@ impl Default for Transform4D {
         Self::IDENTITY
     }
 }
+
+//to clear the confusion of glam expecting column major order, meaning transpose would need to be done when calling Mat3::from_cols_array
+macro_rules! matrix3x3 {
+    (
+        $e00:expr, $e01:expr, $e02:expr,
+        $e10:expr, $e11:expr, $e12:expr,
+        $e20:expr, $e21:expr, $e22:expr
+    ) => {
+        Mat3 {
+            x_axis: Vec3::new($e00, $e10, $e20),
+            y_axis: Vec3::new($e01, $e11, $e21),
+            z_axis: Vec3::new($e02, $e12, $e22)
+        }
+    };
+}
+macro_rules! matrix4x4 {
+    (
+        $e00:expr, $e01:expr, $e02:expr, $e03:expr,
+        $e10:expr, $e11:expr, $e12:expr, $e13:expr,
+        $e20:expr, $e21:expr, $e22:expr, $e23:expr,
+        $e30:expr, $e31:expr, $e32:expr, $e33:expr
+    ) => {
+        Mat4 {
+            x_axis: Vec4::new($e00, $e10, $e20, $e30),
+            y_axis: Vec4::new($e01, $e11, $e21, $e31),
+            z_axis: Vec4::new($e02, $e12, $e22, $e32),
+            w_axis: Vec4::new($e03, $e13, $e23, $e33),
+        }
+    };
+}
+pub(crate) use {matrix3x3, matrix4x4};

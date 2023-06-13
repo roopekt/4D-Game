@@ -1,4 +1,4 @@
-use super::transform::{Transform3D, AffineTransform3D};
+use super::transform::{Transform3D, AffineTransform3D, matrix3x3};
 use crate::events::input::InputHandler;
 use crate::global_data::GlobalData;
 use glam::{Vec3, Vec2, Mat3};
@@ -77,11 +77,11 @@ pub fn player_projection_matrix_3D(global_data: &GlobalData) -> AffineTransform3
     b = -(2 * near * far) / (far - near) */
 
     AffineTransform3D {
-        linear_transform: Mat3::from_cols_array(&[
+        linear_transform: matrix3x3![
             y/aspect, 0.0, 0.0,
             0.0,      y,   0.0,
             0.0,      0.0, (near+far)/(far-near)
-        ]).transpose(),//because column major expected
+        ],
         translation: Vec3::new(0.0, 0.0, -(2.0*near*far)/(far-near))
     }
 }

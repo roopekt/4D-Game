@@ -52,7 +52,7 @@ impl Mesh4D {
     };
 
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh4D {
-        self.upload_static_with_topology(display, glium::index::PrimitiveType::Points)
+        self.upload_static_with_topology(display, glium::index::PrimitiveType::LinesListAdjacency)
     }
 
     pub fn upload_static_with_topology(&self, display: &glium::Display, topology: glium::index::PrimitiveType) -> StaticUploadedMesh4D {

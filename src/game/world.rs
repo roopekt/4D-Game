@@ -1,4 +1,4 @@
-use super::player::Player3D;
+use super::player::{Player3D, Player4D};
 use crate::global_data::GlobalData;
 use crate::renderer::mesh;
 use std::time::Instant;
@@ -8,30 +8,41 @@ use super::transform::{Transform3D, Transform4D, matrix3x3, matrix4x4};
 use crate::renderer::renderable_object::{RenderableObject3D, RenderableObject4D};
 use crate::renderer::shading::materials;
 
+pub struct Multiverse {
+    pub world_3D: World3D,
+    pub world_4D: World4D,
+    pub last_update_time: Instant
+}
+impl Multiverse {
+    pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
+        Self {
+            world_3D: World3D::new(global_data, display),
+            world_4D: World4D::new(global_data, display),
+            last_update_time: Instant::now()
+        }
+    }
+}
+
 pub struct World3D {
-    pub last_update_time: Instant,
     pub player: Player3D,
     pub static_scene: Vec<RenderableObject3D<materials::SingleColorMaterial>>
 }
 impl World3D {
     pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
         Self {
-            last_update_time: Instant::now(),
             player: Player3D::new(global_data),
             static_scene: get_static_scene_objects_3D(display)
         }
     }
 }
 pub struct World4D {
-    pub last_update_time: Instant,
-    pub player: Player3D,
+    pub player: Player4D,
     pub static_scene: Vec<RenderableObject4D<materials::SingleColorMaterial>>
 }
 impl World4D {
     pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
         Self {
-            last_update_time: Instant::now(),
-            player: Player3D::new(global_data),
+            player: Player4D::new(global_data),
             static_scene: get_static_scene_objects_4D(display)
         }
     }
@@ -89,7 +100,7 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
     //tesseract
     objects.push(RenderableObject4D {
         transform: Transform4D {
-            position: Vec4::new(0.0, 1.0, 3.0, 0.0),
+            position: Vec4::new(0.0, 0.0, 1.0, 3.0),
             ..Default::default()
         }.into(),
         mesh: mesh::primitives::tesseract_4D().upload_static(display),

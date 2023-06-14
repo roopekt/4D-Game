@@ -1,7 +1,7 @@
 use crate::options::AsVector;
 use crate::renderer::text_rendering; 
 use crate::global_data::GlobalData;
-use crate::game::world::World3D;
+use crate::game::world::Multiverse;
 use glium_glyph::glyph_brush;
 use std::fmt::Display;
 use glam::Vec2;
@@ -11,23 +11,30 @@ pub fn render_info_screen(
     target: &mut glium::Frame,
     display: &glium::Display,
     text_renderer: &mut text_rendering::TextRenderer,
-    world: &World3D,
+    multiverse: &Multiverse,
     global_data: &GlobalData)
 {
     let resolution = CustomFormatted(global_data.resolution);
     let FPS = global_data.FPS;
     let uncapped_FPS = global_data.uncapped_FPS;
     let visual_mode = global_data.visual_mode.to_string();
-    let camera_position = CustomFormatted(world.player.get_camera_world_position());
-    let look_direction = CustomFormatted(world.player.get_pretty_look_direction());
+    let camera_position_3D = CustomFormatted(multiverse.world_3D.player.get_camera_world_position());
+    let camera_position_4D = CustomFormatted(multiverse.world_4D.player.get_camera_world_position());
+    let look_direction_3D = CustomFormatted(multiverse.world_3D.player.get_pretty_look_direction());
+    let look_direction_4D = CustomFormatted(multiverse.world_4D.player.get_pretty_look_direction());
 
     let text = format!("\
 Resolution: {resolution}
 FPS: {FPS:.1}, uncapped {uncapped_FPS:.1}
 Mode: {visual_mode}
 
-Position: {camera_position:.2}
-Look direction: {look_direction:.2}");
+3D:
+Position: {camera_position_3D:.2}
+Look direction: {look_direction_3D:.2}
+
+4D:
+Position: {camera_position_4D:.2}
+Look direction: {look_direction_4D:.2}");
 
     let font_size = global_data.options.user.info_screen.font_size;
     let screen_position = global_data.options.user.info_screen.position.as_vector();
@@ -91,6 +98,16 @@ impl Display for CustomFormatted<glam::Vec3> {
             format_vector_component(self.0.x, formatter),
             format_vector_component(self.0.y, formatter),
             format_vector_component(self.0.z, formatter)
+        )
+    }
+}
+impl Display for CustomFormatted<glam::Vec4> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(formatter, "{}, {}, {}, {}",
+            format_vector_component(self.0.x, formatter),
+            format_vector_component(self.0.y, formatter),
+            format_vector_component(self.0.z, formatter),
+            format_vector_component(self.0.w, formatter)
         )
     }
 }

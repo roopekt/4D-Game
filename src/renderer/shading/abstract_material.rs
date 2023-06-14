@@ -22,6 +22,25 @@ macro_rules! implement_material_draw { ($get_uniforms_func:expr) => {
 
         target.draw(vertices, indeces, program, &uniforms, draw_parameters)
     }
+
+    fn draw_mesh_4D<'a, 'b, T, V, I>(
+        &self,
+        target: &mut T,
+        vertices: V,
+        indeces: I,
+        program: &glium::Program,
+        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock4D>,
+        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock4D>,
+        draw_parameters: &glium::DrawParameters<'_>)
+        -> Result<(), glium::DrawError>
+        where T: glium::Surface, V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>
+    {
+        let uniforms = $get_uniforms_func(self);
+        let uniforms = uniforms.add("vertex_uniforms", vertex_block);
+        let uniforms = uniforms.add("fragment_uniforms", fragment_block);
+
+        target.draw(vertices, indeces, program, &uniforms, draw_parameters)
+    }
 }}
 macro_rules! any_uniforms_storage {() => { glium::uniforms::UniformsStorage<impl glium::uniforms::AsUniformValue + '_, impl glium::uniforms::Uniforms + '_> }}
 pub(crate) use implement_material_draw;
@@ -41,6 +60,18 @@ pub trait Material {
         program: &glium::Program,
         vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock3D>,
         fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock3D>,
+        draw_parameters: &glium::DrawParameters<'_>)
+        -> Result<(), glium::DrawError>
+        where T: glium::Surface, V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>;
+
+    fn draw_mesh_4D<'a, 'b, T, V, I>(
+        &self,
+        target: &mut T,
+        vertices: V,
+        indeces: I,
+        program: &glium::Program,
+        vertex_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalVertexBlock4D>,
+        fragment_block: &glium::uniforms::UniformBuffer<crate::renderer::shading::uniform::GlobalFragmentBlock4D>,
         draw_parameters: &glium::DrawParameters<'_>)
         -> Result<(), glium::DrawError>
         where T: glium::Surface, V: glium::vertex::MultiVerticesSource<'b>, I: Into<glium::index::IndicesSource<'a>>;

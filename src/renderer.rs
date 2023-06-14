@@ -3,18 +3,18 @@ pub mod mesh;
 pub mod shading;
 pub mod text_rendering;
 
-use crate::game::world::World3D;
-use crate::game::player::player_projection_matrix_3D;
-use crate::game::transform::AffineTransform3D;
+use crate::game::world::{Multiverse, World3D, World4D};
+use crate::game::player;
+use crate::game::transform::{AffineTransform3D, AffineTransform4D};
 use crate::global_data::{GlobalData, VisualMode};
 use glium::{Surface, framebuffer, texture};
 use shading::abstract_material::Material;
 use shading::materials;
 use shading::shaders::ShaderProgramContainer;
-use shading::uniform::{GlobalVertexBlock3D, GlobalFragmentBlock3D, UniformBlock};
+use shading::uniform::{GlobalVertexBlock3D, GlobalFragmentBlock3D, GlobalVertexBlock4D, GlobalFragmentBlock4D, UniformBlock};
 use shading::glsl_conversion::ToStd140;
 use crate::options::AsVector;
-use self::renderable_object::RenderableObject3D;
+use self::renderable_object::{RenderableObject3D, RenderableObject4D};
 use crate::info_screen::render_info_screen;
 
 pub struct Renderer<'a> {
@@ -35,16 +35,16 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    pub fn render_frame(&mut self, display: &glium::Display, world: &World3D, global_data: &mut GlobalData) {
+    pub fn render_frame(&mut self, display: &glium::Display, multiverse: &Multiverse, global_data: &mut GlobalData) {
         let mut target = display.draw();
         target.clear_color_and_depth(
             (0.0, 0.0, 1.0, 1.0),
             1.0
         );
 
-        self.render_objects(&mut target, display, world, global_data);
+        self.render_objects(&mut target, display, multiverse, global_data);
         if global_data.info_screen_visible {
-            render_info_screen(&mut target, display, &mut self.text_renderer, world, global_data);
+            render_info_screen(&mut target, display, &mut self.text_renderer, multiverse, global_data);
         }
 
         target.finish().unwrap();
@@ -54,11 +54,26 @@ impl<'a> Renderer<'a> {
         &mut self,
         target: &mut glium::Frame,
         display: &glium::Display,
+        multiverse: &Multiverse,
+        global_data: &GlobalData)
+    {
+        if global_data.is_4D_active() {
+            self.render_objects_4D(target, display, &multiverse.world_4D, global_data);
+        }
+        else {
+            self.render_objects_3D(target, display, &multiverse.world_3D, global_data);
+        }
+    }
+
+    fn render_objects_3D(
+        &mut self,
+        target: &mut glium::Frame,
+        display: &glium::Display,
         world: &World3D,
         global_data: &GlobalData)
     {
         let inverse_camera_trs_matrix = world.player.get_camera_trs_matrix().inverse();
-        let projection_matrix = player_projection_matrix_3D(global_data);
+        let projection_matrix = player::player_projection_matrix_3D(global_data);
 
         let fragment_block = GlobalFragmentBlock3D {
             light_position: world.player.get_camera_world_position().std140(),
@@ -80,7 +95,7 @@ impl<'a> Renderer<'a> {
 
 
         if global_data.visual_mode == VisualMode::Combined3D {
-            let mut object_draw_parameters = ObjectDrawParameters {
+            let mut object_draw_parameters = ObjectDrawParameters3D {
                 display,
                 inverse_camera_trs_matrix,
                 projection_matrix,
@@ -90,18 +105,18 @@ impl<'a> Renderer<'a> {
                 render_to_alternate: false,
                 _global_data: global_data
             };
-            self.render_objects_simple_visual_mode(world, target, &object_draw_parameters);
+            self.render_objects_simple_visual_mode_3D(world, target, &object_draw_parameters);
 
             self.setup_alternate_target(display);
             object_draw_parameters.visual_mode = VisualMode::Degenerate3D;
             object_draw_parameters.render_to_alternate = true;
-            self.render_objects_simple_visual_mode(world, target, &object_draw_parameters);
+            self.render_objects_simple_visual_mode_3D(world, target, &object_draw_parameters);
 
             self.blend_alternate_target_onto_main_target(target, global_data.options.user.graphics.combined_render_degenerate_strength);
             self.draw_vertical_line(target);
         }
         else {
-            let object_draw_parameters = ObjectDrawParameters {
+            let object_draw_parameters = ObjectDrawParameters3D {
                 display,
                 inverse_camera_trs_matrix,
                 projection_matrix,
@@ -111,17 +126,61 @@ impl<'a> Renderer<'a> {
                 render_to_alternate: false,
                 _global_data: global_data
             };
-            self.render_objects_simple_visual_mode(world, target, &object_draw_parameters);
+            self.render_objects_simple_visual_mode_3D(world, target, &object_draw_parameters);
         }
     }
+    fn render_objects_4D(
+        &mut self,
+        target: &mut glium::Frame,
+        display: &glium::Display,
+        world: &World4D,
+        global_data: &GlobalData)
+    {
+        let inverse_camera_trs_matrix = world.player.get_camera_trs_matrix().inverse();
+        let projection_matrix = player::player_projection_matrix_4D(global_data);
 
-    fn render_objects_simple_visual_mode<T: glium::Surface>(&mut self, world: &World3D, target: &mut T, params: &ObjectDrawParameters) {
+        let fragment_block = GlobalFragmentBlock4D {
+            light_position: world.player.get_camera_world_position().std140(),
+            light_color: global_data.options.dev.light.light_color.as_vector().std140(),
+            light_ambient_color: global_data.options.dev.light.ambient_color.as_vector().std140(),
+            light_linear_attenuation: global_data.options.dev.light.linear_attenuation.std140(),
+            light_quadratic_attenuation: global_data.options.dev.light.quadratic_attenuation.std140()
+        };
+        let fragment_block_buffer = fragment_block.get_glium_uniform_buffer(display);
+
+        let glium_draw_parameters = glium::DrawParameters {
+            depth: glium::Depth {
+                test: glium::draw_parameters::DepthTest::IfLess,
+                write: true,
+                .. Default::default()
+            },
+            .. Default::default()
+        };
+
+        let object_draw_parameters = ObjectDrawParameters4D {
+            display,
+            inverse_camera_trs_matrix,
+            projection_matrix,
+            fragment_block_buffer,
+            glium_draw_parameters,
+            _global_data: global_data
+        };
+
+        self.render_objects_simple_visual_mode_4D(world, target, &object_draw_parameters);
+    }
+
+    fn render_objects_simple_visual_mode_3D<T: glium::Surface>(&mut self, world: &World3D, target: &mut T, params: &ObjectDrawParameters3D) {
         for object in &world.static_scene {
-            self.render_object(object, target, params);
+            self.render_object_3D(object, target, params);
+        }
+    }
+    fn render_objects_simple_visual_mode_4D<T: glium::Surface>(&mut self, world: &World4D, target: &mut T, params: &ObjectDrawParameters4D) {
+        for object in &world.static_scene {
+            self.render_object_4D(object, target, params);
         }
     }
 
-    fn render_object<M: Material, T: glium::Surface>(&mut self, object: &RenderableObject3D<M>, target: &mut T, params: &ObjectDrawParameters) {
+    fn render_object_3D<M: Material, T: glium::Surface>(&mut self, object: &RenderableObject3D<M>, target: &mut T, params: &ObjectDrawParameters3D) {
         let to_world_transform = object.transform;
         let to_view_transform = params.inverse_camera_trs_matrix * to_world_transform;
         let to_clip_transform = params.projection_matrix * to_view_transform;
@@ -138,7 +197,8 @@ impl<'a> Renderer<'a> {
         let program_id = match params.visual_mode {
             VisualMode::Normal3D => M::PROGRAM_IDS.normal_3D,
             VisualMode::Degenerate3D => M::PROGRAM_IDS.degenerate_3D,
-            VisualMode::Combined3D => panic!("Cannot handle {:?}. Please render in separate passes.", {VisualMode::Combined3D})
+            VisualMode::Combined3D => panic!("Cannot handle {:?}. Please render in separate passes.", params.visual_mode),
+            VisualMode::Degenerate4D => panic!("Cannot handle {:?}. Please use the 4D pipeline. ", params.visual_mode)
         };
         let program = self.shader_programs.get_program(program_id);
 
@@ -166,6 +226,32 @@ impl<'a> Renderer<'a> {
                 &params.glium_draw_parameters
             ).unwrap();
         }
+    }
+    fn render_object_4D<M: Material, T: glium::Surface>(&mut self, object: &RenderableObject4D<M>, target: &mut T, params: &ObjectDrawParameters4D) {
+            let to_world_transform = object.transform;
+            let to_view_transform = params.inverse_camera_trs_matrix * to_world_transform;
+            let to_clip_transform = params.projection_matrix * to_view_transform;
+            let normal_matrix = to_world_transform.point_transform_to_normal_transform();
+            
+            let vertex_block = GlobalVertexBlock4D {
+                to_world_transform: to_world_transform.std140(),
+                to_view_transform: to_view_transform.std140(),
+                to_clip_transform: to_clip_transform.std140(),
+                normal_matrix: normal_matrix.std140()
+            };
+            let vertex_block_buffer = vertex_block.get_glium_uniform_buffer(params.display);
+    
+            let program = self.shader_programs.get_program(M::PROGRAM_IDS.degenerate_4D);
+    
+            object.material.draw_mesh_4D(
+                target,
+                &object.mesh.vertices,
+                &object.mesh.indeces,
+                program,
+                &vertex_block_buffer,
+                &params.fragment_block_buffer,
+                &params.glium_draw_parameters
+            ).unwrap();
     }
 
     fn setup_alternate_target(&mut self, display: &glium::Display) {
@@ -267,7 +353,7 @@ impl AlternateTarget {
     }
 }
 
-struct ObjectDrawParameters<'a> {
+struct ObjectDrawParameters3D<'a> {
     pub display: &'a glium::Display,
     pub inverse_camera_trs_matrix: AffineTransform3D,
     pub projection_matrix: AffineTransform3D,
@@ -275,5 +361,13 @@ struct ObjectDrawParameters<'a> {
     pub glium_draw_parameters: glium::DrawParameters<'a>,
     pub visual_mode: VisualMode,
     pub render_to_alternate: bool,
+    pub _global_data: &'a GlobalData
+}
+struct ObjectDrawParameters4D<'a> {
+    pub display: &'a glium::Display,
+    pub inverse_camera_trs_matrix: AffineTransform4D,
+    pub projection_matrix: AffineTransform4D,
+    pub fragment_block_buffer: glium::uniforms::UniformBuffer<GlobalFragmentBlock4D>,
+    pub glium_draw_parameters: glium::DrawParameters<'a>,
     pub _global_data: &'a GlobalData
 }

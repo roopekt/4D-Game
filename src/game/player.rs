@@ -16,7 +16,7 @@ impl Player3D {
         Self {
             transform: Transform3D::IDENTITY,
             relative_camera_transform: Transform3D {
-                position: Vec3::Y * 0.2,
+                position: Vec3::Y * 1.0,
                 ..Transform3D::default()
             },
             look_direction: Vec2::ZERO
@@ -73,7 +73,7 @@ impl Player4D {
         Self {
             transform: Transform4D::IDENTITY,
             relative_camera_transform: Transform4D {
-                position: Vec4::Z * 0.2,
+                position: Vec4::Z * 1.0,
                 ..Transform4D::default()
             },
             look_direction_A: Vec2::ZERO,

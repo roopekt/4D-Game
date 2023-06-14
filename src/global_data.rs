@@ -33,13 +33,18 @@ impl GlobalData {
     pub fn reload_options(&mut self) {
         self.options = Options::load();
     }
+
+    pub fn is_4D_active(&self) -> bool {
+        self.visual_mode == VisualMode::Degenerate4D
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum VisualMode {
     Normal3D,
     Degenerate3D,
-    Combined3D
+    Combined3D,
+    Degenerate4D
 }
 impl VisualMode {
     pub fn from_int(int: u32) -> Self {
@@ -47,6 +52,7 @@ impl VisualMode {
             1 => Self::Normal3D,
             2 => Self::Combined3D,
             3 => Self::Degenerate3D,
+            4 => Self::Degenerate4D,
             _ => panic!("Unknown visual mode {int}")
         }
     }

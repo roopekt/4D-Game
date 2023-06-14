@@ -2,21 +2,26 @@ pub mod world;
 pub mod transform;
 pub mod player;
 
-use world::World3D;
+use world::Multiverse;
 use crate::events::input::InputHandler;
 use crate::global_data::GlobalData;
 
-pub fn update_game(world: &mut World3D, input: &InputHandler, global_data: &mut GlobalData) {
+pub fn update_game(multiverse: &mut Multiverse, input: &InputHandler, global_data: &mut GlobalData) {
 
-    let delta_time = delta_time(world);
+    let delta_time = get_delta_time(multiverse);
 
-    world.player.update(delta_time, input, global_data);
+    if global_data.is_4D_active() {
+        multiverse.world_4D.player.update(delta_time, input, global_data)
+    }
+    else {
+        multiverse.world_3D.player.update(delta_time, input, global_data);
+    }
 }
 
-pub fn delta_time(world: &mut World3D) -> f32 {
+pub fn get_delta_time(multiverse: &mut Multiverse) -> f32 {
     let now = std::time::Instant::now();
-    let delta_time = (now - world.last_update_time).as_secs_f32();
-    world.last_update_time = now;
+    let delta_time = (now - multiverse.last_update_time).as_secs_f32();
+    multiverse.last_update_time = now;
 
     delta_time
 }

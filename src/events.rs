@@ -42,9 +42,15 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
                     },
                     event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Key3), state: ElementState::Pressed, .. } => {
                         global_data.visual_mode = VisualMode::from_int(3);
+                    },
+                    event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Key4), state: ElementState::Pressed, .. } => {
+                        global_data.visual_mode = VisualMode::from_int(4);
                     }
                     _ => ()
                 }
+            },
+            event::WindowEvent::MouseInput { button, state, .. } => {
+                input_handler.mouse_update_button(button, state);
             },
             event::WindowEvent::Resized(new_size) => {
                 global_data.resolution = glam::UVec2::new(new_size.width, new_size.height);

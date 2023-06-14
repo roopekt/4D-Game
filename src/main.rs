@@ -22,7 +22,7 @@ fn main() {
     let display = get_display(&glutin_event_loop, &global_data);
     
     let mut input_handler = events::input::InputHandler::new();
-    let mut world = game::world::World3D::new(&global_data, &display);
+    let mut multiverse = game::world::Multiverse::new(&global_data, &display);
     let mut renderer = Renderer::new(&display, &global_data);
 
     events::set_mouse_grab(true, &mut global_data, &display);
@@ -55,8 +55,8 @@ fn main() {
                     global_data.FPS = FPS as f32;
                 }
 
-                game::update_game(&mut world, &input_handler, &mut global_data);
-                renderer.render_frame(&display, &world, &mut global_data);
+                game::update_game(&mut multiverse, &input_handler, &mut global_data);
+                renderer.render_frame(&display, &multiverse, &mut global_data);
                 input_handler.reset_deltas();
             },
             other => {
@@ -73,7 +73,8 @@ fn main() {
 fn get_display(event_loop: &glutin::event_loop::EventLoop<()>, global_data: &GlobalData) -> glium::Display {
     
     let wb = glutin::window::WindowBuilder::new()
-        .with_inner_size(glutin::dpi::LogicalSize::new(global_data.resolution.x, global_data.resolution.y));
+        .with_inner_size(glutin::dpi::LogicalSize::new(global_data.resolution.x, global_data.resolution.y))
+        .with_title("4D game");
     let cb = glutin::ContextBuilder::new()
         .with_depth_buffer(24);
     let display = glium::Display::new(wb, cb, &event_loop).unwrap();

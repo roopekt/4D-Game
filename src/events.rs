@@ -18,7 +18,7 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
                 match input
                 {
                     event::KeyboardInput { virtual_keycode: Some(key), state, .. } => {
-                        input_handler.update_key(key, state);
+                        input_handler.keyboard_update_key(key, state);
                     },
                     _ => ()
                 }
@@ -52,6 +52,8 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
             _ => ()
         },
         event::Event::DeviceEvent { event: device_event, .. } => match device_event {
+            // Grabbed here instead of as a window event, because this one is more raw.
+            // See the docs for problems with the window event: https://docs.rs/winit/latest/winit/event/enum.WindowEvent.html#variant.CursorMoved
             event::DeviceEvent::MouseMotion { delta } => {
                 if global_data.mouse_grabbed {
                     input_handler.add_mouse_delta(delta.0, delta.1);

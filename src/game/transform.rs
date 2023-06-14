@@ -4,6 +4,19 @@ pub mod rotation;
 pub use affine_transform::{AffineTransform3D, AffineTransform4D};
 use glam::{Vec3, Mat3, Vec4, Mat4};
 
+/* coordinate conventions for view space:
+    3D:
+        X: right (degenerate dimension, that is, perpendicular to the slice plane)
+        Y: up
+        Z: forward
+        => left-handed
+    4D:
+        X: degenerate dimension
+        Y: "right"
+        Z: up
+        W: forward
+*/
+
 #[derive(Debug, Clone, Copy)]
 pub struct Transform3D {
     pub position: Vec3,
@@ -59,7 +72,7 @@ impl Default for Transform4D {
     }
 }
 
-//to clear the confusion of glam expecting column major order, meaning transpose would need to be done when calling Mat3::from_cols_array
+//to clear the confusion of glam expecting column major order, meaning transpose would need to be applied when calling Mat3::from_cols_array
 macro_rules! matrix3x3 {
     (
         $e00:expr, $e01:expr, $e02:expr,

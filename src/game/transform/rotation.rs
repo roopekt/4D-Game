@@ -1,5 +1,7 @@
 use glam::{Mat3, Mat4};
 use super::{matrix3x3, matrix4x4};
+use rand::Rng;
+use std::f32::consts::TAU;
 
 // 3D ones are counter-clockwise for left-handed coordinates
 
@@ -93,4 +95,19 @@ pub fn around_zw(angle: f32) -> Mat4 {
         0.0, 0.0, 1.0, 0.0,
         0.0, 0.0, 0.0, 1.0
     )
+}
+
+//these naive random Euler angles are not uniform in SO(3) (think about gimbal lock)
+pub fn random_3D_nonuniform<R: Rng>(rng: &mut R) -> Mat3 {
+    around_z(rng.gen_range(0.0..TAU)) *
+    around_y(rng.gen_range(0.0..TAU)) *
+    around_x(rng.gen_range(0.0..TAU))
+}
+pub fn random_4D_nonuniform<R: Rng>(rng: &mut R) -> Mat4 {
+    around_xy(rng.gen_range(0.0..TAU)) *
+    around_xz(rng.gen_range(0.0..TAU)) *
+    around_xw(rng.gen_range(0.0..TAU)) *
+    around_yz(rng.gen_range(0.0..TAU)) *
+    around_yw(rng.gen_range(0.0..TAU)) *
+    around_zw(rng.gen_range(0.0..TAU))
 }

@@ -4,9 +4,10 @@ use crate::renderer::mesh;
 use std::time::Instant;
 use glam::{Mat3, Vec3, Mat4, Vec4};
 use std::vec::Vec;
-use super::transform::{Transform3D, Transform4D, matrix3x3, matrix4x4};
+use super::transform::{Transform3D, Transform4D, matrix3x3, matrix4x4, rotation};
 use crate::renderer::renderable_object::{RenderableObject3D, RenderableObject4D};
 use crate::renderer::shading::materials;
+use rand::{rngs::SmallRng, SeedableRng, Rng};
 
 pub struct Multiverse {
     pub world_3D: World3D,
@@ -50,6 +51,7 @@ impl World4D {
 
 fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject3D<materials::SingleColorMaterial>> {
     let mut objects: Vec<RenderableObject3D<materials::SingleColorMaterial>> = Vec::new();
+    let mut rng = SmallRng::from_entropy();
 
     //floor
     objects.push(RenderableObject3D {
@@ -66,20 +68,38 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
     });
 
-    //cube
+    //big cube
     objects.push(RenderableObject3D {
         transform: Transform3D {
             position: Vec3::new(0.0, 1.0, 3.0),
+            scale: Vec3::splat(1.5),
             ..Default::default()
         }.into(),
         mesh: mesh::primitives::cube_3D().upload_static(display),
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
 
+    //random cubes
+    const CUBE_COUNT: usize = 15;
+    let cube = mesh::primitives::cube_3D();
+    for _ in 0..CUBE_COUNT {
+        const SPAWN_RADIUS: f32 = 7.0;
+        let position = Vec3::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
+        let orientation = rotation::random_3D_nonuniform(&mut rng);
+        let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));
+
+        objects.push(RenderableObject3D {
+            transform: Transform3D { position, orientation, ..Default::default() }.into(),
+            mesh: cube.clone().upload_static(display),
+            material: materials::SingleColorMaterial { albedo_color: color }
+        });
+    }
+
     objects
 }
 fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject4D<materials::SingleColorMaterial>> {
     let mut objects: Vec<RenderableObject4D<materials::SingleColorMaterial>> = Vec::new();
+    let mut rng = SmallRng::from_entropy();
 
     //floor
     objects.push(RenderableObject4D {
@@ -97,15 +117,32 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
     });
 
-    //tesseract
+    //big tesseract
     objects.push(RenderableObject4D {
         transform: Transform4D {
             position: Vec4::new(0.0, 0.0, 1.0, 3.0),
+            scale: Vec4::splat(1.5),
             ..Default::default()
         }.into(),
         mesh: mesh::primitives::tesseract_4D().upload_static(display),
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
+
+    //random tesseracts
+    const TESSERACT_COUNT: usize = 150;
+    let tesseract = mesh::primitives::tesseract_4D();
+    for _ in 0..TESSERACT_COUNT {
+        const SPAWN_RADIUS: f32 = 7.0;
+        let position = Vec4::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
+        let orientation = rotation::random_4D_nonuniform(&mut rng);
+        let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));
+
+        objects.push(RenderableObject4D {
+            transform: Transform4D { position, orientation, ..Default::default() }.into(),
+            mesh: tesseract.clone().upload_static(display),
+            material: materials::SingleColorMaterial { albedo_color: color }
+        });
+    }
 
     objects
 }

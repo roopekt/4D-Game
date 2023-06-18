@@ -24,7 +24,7 @@ impl Player3D {
     }
 
     pub fn update(&mut self, delta_time: f32, input: &InputHandler, global_data: &mut GlobalData) {
-
+        //linear movement
         let mut pos_delta = Vec3::ZERO;
         if input.keyboard_is_pressed(&VirtualKeyCode::A     ) { pos_delta += Vec3::NEG_X };
         if input.keyboard_is_pressed(&VirtualKeyCode::D     ) { pos_delta += Vec3::X     };
@@ -35,6 +35,7 @@ impl Player3D {
         pos_delta = self.transform.orientation * pos_delta;
         self.transform.position += pos_delta * delta_time * global_data.options.dev.player.walking_speed;
         
+        //rotation
         self.look_direction -= input.mouse_delta() * global_data.options.user.input.mouse_sensitivity;
         self.look_direction.x = self.look_direction.x.rem_euclid(TAU);//keep within reasonable range to prevent precision issues
         self.look_direction.y = self.look_direction.y.clamp(-TAU / 4.0, TAU / 4.0);
@@ -65,8 +66,7 @@ impl Player3D {
 pub struct Player4D {
     pub transform: Transform4D,
     pub relative_camera_transform: Transform4D,
-    pub look_direction_A: Vec2,//doesn't rotate degenerate dimension
-    pub look_direction_B: Vec2//rotates degenerate dimension
+    pub tilt: f32
 }
 impl Player4D {
     pub fn new(_global_data: &GlobalData) -> Self {
@@ -76,13 +76,12 @@ impl Player4D {
                 position: Vec4::Z * 1.0,
                 ..Transform4D::default()
             },
-            look_direction_A: Vec2::ZERO,
-            look_direction_B: Vec2::ZERO
+            tilt: 0.0
         }
     }
 
     pub fn update(&mut self, delta_time: f32, input: &InputHandler, global_data: &mut GlobalData) {
-
+        //linear movement
         let mut pos_delta = Vec4::ZERO;
         if input.keyboard_is_pressed(&VirtualKeyCode::Q     ) { pos_delta += Vec4::NEG_X };
         if input.keyboard_is_pressed(&VirtualKeyCode::E     ) { pos_delta += Vec4::X     };
@@ -94,23 +93,26 @@ impl Player4D {
         if input.keyboard_is_pressed(&VirtualKeyCode::W     ) { pos_delta += Vec4::W     };
         pos_delta = self.transform.orientation * pos_delta;
         self.transform.position += pos_delta * delta_time * global_data.options.dev.player.walking_speed;
-        
+
+        //rotation
+        //probably suffers from drifting
         let look_delta = -input.mouse_delta() * global_data.options.user.input.mouse_sensitivity;
-        if input.mouse_is_pressed(&MouseButton::Left) {
-            self.look_direction_A += look_delta;
-            self.look_direction_A.x = self.look_direction_A.x.rem_euclid(TAU);
-            self.look_direction_A.y = self.look_direction_A.y.clamp(-TAU / 4.0, TAU / 4.0);
+        let is_left_button_pressed = input.mouse_is_pressed(&MouseButton::Left);
+        let plane_delta = if is_left_button_pressed {
+            rotation::around_xz(look_delta.x)
         }
         else {
-            self.look_direction_B += look_delta;
-            self.look_direction_B.x = self.look_direction_B.x.rem_euclid(TAU);
-            self.look_direction_B.y = self.look_direction_B.y.clamp(-TAU / 4.0, TAU / 4.0);
-        }
+            rotation::around_zw(look_delta.x) *
+            rotation::around_yz(look_delta.y)
+        };
         self.transform.orientation = 
-            rotation::around_zw(self.look_direction_B.x) *
-            rotation::around_yz(self.look_direction_B.y) *
-            rotation::around_xz(self.look_direction_A.x);
-        self.relative_camera_transform.orientation = rotation::around_xy(self.look_direction_A.y);
+            self.transform.orientation *
+            plane_delta;
+        if is_left_button_pressed {
+            self.tilt -= look_delta.y;
+            self.tilt = self.tilt.clamp(-TAU / 4.0, TAU / 4.0);
+            self.relative_camera_transform.orientation = rotation::around_xy(self.tilt);
+        }
     }
 
     pub fn get_trs_matrix(&self) -> AffineTransform4D {
@@ -125,13 +127,8 @@ impl Player4D {
         &self.transform.as_matrix_ignore_scale() * &self.relative_camera_transform.position
     }
 
-    pub fn get_pretty_look_direction(&self) -> Vec4 {
-        Vec4::new(
-            self.look_direction_A.x.to_degrees(),
-            self.look_direction_A.y.to_degrees(),
-            self.look_direction_B.x.to_degrees(),
-            self.look_direction_B.y.to_degrees()
-        )
+    pub fn get_camera_world_orientation(&self) -> Mat4 {
+        self.transform.orientation * self.relative_camera_transform.orientation
     }
 }
 

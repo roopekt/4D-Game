@@ -5,12 +5,12 @@ use std::iter::Sum;
 use glam::{Vec3, Vec4};
 use crate::game::transform::{AffineTransform3D, AffineTransform4D};
 
-type IndexT = u16;
+type GpuIndexT = u16;
 
 #[derive(Clone)]
 pub struct Mesh3D {
     pub vertices: Vec<Vertex3D>,
-    pub indeces: Vec<IndexT>
+    pub indeces: Vec<usize>
 }
 impl Mesh3D {
     const EMPTY: Self = Self {
@@ -23,9 +23,13 @@ impl Mesh3D {
     }
 
     pub fn upload_static_with_topology(&self, display: &glium::Display, topology: glium::index::PrimitiveType) -> StaticUploadedMesh3D {
+        let indeces: Vec<GpuIndexT> = self.indeces.iter()
+            .map(|&i| i.try_into().expect(&format!("Failed to convert index {} to {}", i, stringify!(GpuIndexT))))
+            .collect();
+
         StaticUploadedMesh3D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: glium::IndexBuffer::immutable(display, topology, &self.indeces).unwrap()
+            indeces: glium::IndexBuffer::immutable(display, topology, &indeces).unwrap()
         }
     }
 
@@ -43,7 +47,7 @@ impl Mesh3D {
 #[derive(Clone)]
 pub struct Mesh4D {
     pub vertices: Vec<Vertex4D>,
-    pub indeces: Vec<IndexT>
+    pub indeces: Vec<usize>
 }
 impl Mesh4D {
     const EMPTY: Self = Self {
@@ -56,9 +60,13 @@ impl Mesh4D {
     }
 
     pub fn upload_static_with_topology(&self, display: &glium::Display, topology: glium::index::PrimitiveType) -> StaticUploadedMesh4D {
+        let indeces: Vec<GpuIndexT> = self.indeces.iter()
+            .map(|&i| i.try_into().expect(&format!("Failed to convert index {} to {}", i, stringify!(GpuIndexT))))
+            .collect();
+
         StaticUploadedMesh4D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: glium::IndexBuffer::immutable(display, topology, &self.indeces).unwrap()
+            indeces: glium::IndexBuffer::immutable(display, topology, &indeces).unwrap()
         }
     }
 
@@ -76,8 +84,8 @@ impl Mesh4D {
 
 impl AddAssign for Mesh3D {
     fn add_assign(&mut self, rhs: Self) {
-        let index_ofset = self.vertices.len() as IndexT;
-        let rhs_indeces: Vec<IndexT> = rhs.indeces
+        let index_ofset = self.vertices.len();
+        let rhs_indeces: Vec<usize> = rhs.indeces
             .iter()
             .map(|i| i + index_ofset)
             .collect();
@@ -88,8 +96,8 @@ impl AddAssign for Mesh3D {
 }
 impl AddAssign for Mesh4D {
     fn add_assign(&mut self, rhs: Self) {
-        let index_ofset = self.vertices.len() as IndexT;
-        let rhs_indeces: Vec<IndexT> = rhs.indeces
+        let index_ofset = self.vertices.len();
+        let rhs_indeces: Vec<usize> = rhs.indeces
             .iter()
             .map(|i| i + index_ofset)
             .collect();
@@ -129,11 +137,11 @@ impl Sum for Mesh4D {
 
 pub struct StaticUploadedMesh3D {
     pub vertices: glium::VertexBuffer<Vertex3D>,
-    pub indeces: glium::IndexBuffer<IndexT>
+    pub indeces: glium::IndexBuffer<GpuIndexT>
 }
 pub struct StaticUploadedMesh4D {
     pub vertices: glium::VertexBuffer<Vertex4D>,
-    pub indeces: glium::IndexBuffer<IndexT>
+    pub indeces: glium::IndexBuffer<GpuIndexT>
 }
 
 #[derive(Copy, Clone, Debug)]

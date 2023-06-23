@@ -76,9 +76,6 @@ pub fn quad_3D() -> Mesh3D {
             .map(|&c| corner_signs_to_vertex(&c))
             .collect(),
         indeces: triangle_indeces
-            .iter()
-            .map(|&i| i.try_into().unwrap())
-            .collect()
     }
 }
 
@@ -142,9 +139,6 @@ pub fn cube_4D() -> Mesh4D {
             .map(|&c| corner_signs_to_vertex(&c))
             .collect(),
         indeces: tetrahedron_indeces
-            .iter()
-            .map(|&i| i.try_into().unwrap())
-            .collect()
     }
 }
 
@@ -216,9 +210,7 @@ pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
             .map(|&v| Vertex3D { position: v.into(), normal: v.into() })
             .collect(),
         indeces: triangle_indeces
-            .iter().flatten()
-            .map(|&i| i.try_into().unwrap())
-            .collect()
+            .iter().flatten().cloned().collect()
     }
 }
 

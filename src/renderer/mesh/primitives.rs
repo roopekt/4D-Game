@@ -1,8 +1,24 @@
-use super::{Mesh3D, Mesh4D, Vertex3D, Vertex4D};
-use glam::{Mat3, Vec3, Mat4, Vec4};
+use super::{Mesh3D, Mesh4D, Vertex3D, Vertex4D, IndexT};
+use glam::{Mat3, Vec3, Mat4, Vec4, Vec4Swizzles};
 use crate::game::transform::{AffineTransform3D, Transform3D, AffineTransform4D, Transform4D};
 use crate::errors::assert_equal;
 use std::fmt::Debug as DebugTrait;
+use std::f32;
+use combinatorial::Combinations;
+
+pub fn blit_quad() -> Mesh3D {
+    quad_3D().as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
+}
+
+pub fn vertical_line() -> Mesh3D {
+    Mesh3D {
+        vertices: vec![
+            Vertex3D { position: [0.0, -1.0, 0.0], normal: [0.0, 0.0, 0.0] },
+            Vertex3D { position: [0.0,  1.0, 0.0], normal: [0.0, 0.0, 0.0] }
+        ],
+        indeces: vec![0, 1]
+    }
+}
 
 //yes, this is a very convoluted way to get a quad, but this is easier to generalize to 4D
 pub fn quad_3D() -> Mesh3D {
@@ -63,20 +79,6 @@ pub fn quad_3D() -> Mesh3D {
             .iter()
             .map(|&i| i.try_into().unwrap())
             .collect()
-    }
-}
-
-pub fn blit_quad() -> Mesh3D {
-    quad_3D().as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
-}
-
-pub fn vertical_line() -> Mesh3D {
-    Mesh3D {
-        vertices: vec![
-            Vertex3D { position: [0.0, -1.0, 0.0], normal: [0.0, 0.0, 0.0] },
-            Vertex3D { position: [0.0,  1.0, 0.0], normal: [0.0, 0.0, 0.0] }
-        ],
-        indeces: vec![0, 1]
     }
 }
 
@@ -189,13 +191,79 @@ pub fn tesseract_4D() -> Mesh4D {
             orthogonal_transforms.push(matrix.into());
         }
     }
-    let translation: AffineTransform4D = Transform4D{ position: Vec4::W * 0.5, ..Default::default() }.into();
+    let translation: AffineTransform4D = Transform4D { position: Vec4::W * 0.5, ..Default::default() }.into();
 
     let face = cube_4D();
     return orthogonal_transforms
         .iter()
         .map(|orthogonal_transform| face.clone().as_transformed(&(*orthogonal_transform * translation)))
         .sum();
+}
+
+pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
+    let mut vertices: Vec<Vec3> = get_low_poly_sphere_vertices_general_dimension(3)
+        .iter().map(|&v| v.xyz()).collect();
+    let mut triangle_indeces: Vec<Vec<usize>> = Combinations::of_size(0..vertices.len(), 3)
+        .collect(); //all possible triangles
+
+    for _ in 0..subdivisions {
+        (vertices, triangle_indeces) = subdivide_unit_sphere_3D(vertices, triangle_indeces);
+    };
+
+    Mesh3D {
+        vertices: vertices
+            .iter()
+            .map(|&v| Vertex3D { position: v.into(), normal: v.into() })
+            .collect(),
+        indeces: triangle_indeces
+            .iter().flatten()
+            .map(|&i| i.try_into().unwrap())
+            .collect()
+    }
+}
+
+fn get_low_poly_sphere_vertices_general_dimension(dimension: usize) -> Vec<Vec4> {
+    let mut vertices = vec![Vec4::ZERO];
+    const BASIS_VECTORS: [Vec4; 4] = [Vec4::X, Vec4::Y, Vec4::Z, Vec4::W];
+    for i in 0..dimension {
+        let center = vertices.iter().sum::<Vec4>() / vertices.len() as f32;
+        let r_squared = (center - vertices[0]).length_squared();
+        let h = f32::sqrt(1.0 - r_squared);//such that length of new edges (hypotenuse) is 1
+        vertices.push(center + h * BASIS_VECTORS[i]);
+    };
+
+    //center and normalize the shape
+    let center = vertices.iter().sum::<Vec4>() / vertices.len() as f32;
+    vertices = vertices
+        .iter()
+        .map(|&v| (v - center).normalize())
+        .collect();
+
+    assert_equal!(vertices.len(), dimension + 1);
+    vertices
+}
+
+fn subdivide_unit_sphere_3D(mut vertices: Vec<Vec3>, triangle_indeces: Vec<Vec<usize>>) -> (Vec<Vec3>, Vec<Vec<usize>>) {
+    let mut new_indeces = Vec::new();
+    for triangle in triangle_indeces {
+        let original_vertices: Vec<Vec3> = triangle.iter()
+            .map(|&i| vertices[i]).collect();
+        let mid_vertex = (original_vertices.iter().sum::<Vec3>() / original_vertices.len() as f32).normalize();
+        
+        // let index_offset = new_vertices.len();
+        let mid_vertex_index = vertices.len();
+        vertices.push(mid_vertex);
+
+        for outer_indeces in Combinations::<usize>::of_size(triangle, 2) {
+            new_indeces.push(vec![
+                outer_indeces[0],
+                outer_indeces[1],
+                mid_vertex_index
+            ]);
+        }
+    };
+
+    (vertices, new_indeces)
 }
 
 fn all_bool_arrays<const BOOL_COUNT: usize>() -> Vec<[bool; BOOL_COUNT]> {

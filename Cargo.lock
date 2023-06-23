@@ -253,6 +253,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "combinatorial"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bdaf2f71259174671afdb568c8d911635472605f7f4be8b6c08bcc69ea3ed84"
+
+[[package]]
 name = "const-str"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -580,6 +586,7 @@ dependencies = [
 name = "game4D"
 version = "0.1.0"
 dependencies = [
+ "combinatorial",
  "const-str",
  "glam",
  "glium",

@@ -79,11 +79,13 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
 
+    const CUBE_COUNT: usize = 7;
+    const SPHERE_COUNT: usize = 7;
+    const SPAWN_RADIUS: f32 = 7.0;
+
     //random cubes
-    const CUBE_COUNT: usize = 15;
     let cube = mesh::primitives::cube_3D();
     for _ in 0..CUBE_COUNT {
-        const SPAWN_RADIUS: f32 = 7.0;
         let position = Vec3::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
         let orientation = rotation::random_3D_nonuniform(&mut rng);
         let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));
@@ -91,6 +93,19 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
         objects.push(RenderableObject3D {
             transform: Transform3D { position, orientation, ..Default::default() }.into(),
             mesh: cube.clone().upload_static(display),
+            material: materials::SingleColorMaterial { albedo_color: color }
+        });
+    }
+
+    //random spheres
+    let sphere = mesh::primitives::sphere_3D(4);
+    for _ in 0..SPHERE_COUNT {
+        let position = Vec3::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
+        let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));
+
+        objects.push(RenderableObject3D {
+            transform: Transform3D { position, ..Default::default() }.into(),
+            mesh: sphere.clone().upload_static(display),
             material: materials::SingleColorMaterial { albedo_color: color }
         });
     }

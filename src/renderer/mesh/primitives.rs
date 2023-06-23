@@ -1,4 +1,4 @@
-use super::{Mesh3D, Mesh4D, Vertex3D, Vertex4D, IndexT};
+use super::{Mesh3D, Mesh4D, Vertex3D, Vertex4D};
 use glam::{Mat3, Vec3, Mat4, Vec4, Vec4Swizzles};
 use crate::game::transform::{AffineTransform3D, Transform3D, AffineTransform4D, Transform4D};
 use crate::errors::assert_equal;
@@ -245,23 +245,40 @@ fn get_low_poly_sphere_vertices_general_dimension(dimension: usize) -> Vec<Vec4>
 
 fn subdivide_unit_sphere_3D(mut vertices: Vec<Vec3>, triangle_indeces: Vec<Vec<usize>>) -> (Vec<Vec3>, Vec<Vec<usize>>) {
     let mut new_indeces = Vec::new();
-    for triangle in triangle_indeces {
-        let original_vertices: Vec<Vec3> = triangle.iter()
-            .map(|&i| vertices[i]).collect();
-        let mid_vertex = (original_vertices.iter().sum::<Vec3>() / original_vertices.len() as f32).normalize();
-        
-        // let index_offset = new_vertices.len();
-        let mid_vertex_index = vertices.len();
-        vertices.push(mid_vertex);
+    for triangle in triangle_indeces {    
+        let index_offset = vertices.len();
+        let edges: Vec<Vec<usize>> = Combinations::of_size(triangle.clone(), 2).collect();
+        assert_equal!(edges.len(), 3);
 
-        for outer_indeces in Combinations::<usize>::of_size(triangle, 2) {
+        //new vertices
+        for edge in &edges {
+            let mid_edge_vertex = ((vertices[edge[0]] + vertices[edge[1]]) * 0.5).normalize();
+            vertices.push(mid_edge_vertex);
+        }
+
+        //corner triangles
+        for corner_index in triangle {
+            let new_relative_vertex_indeces: Vec<usize> = edges.iter()
+                .enumerate()
+                .filter(|(_i, edge)| edge.contains(&corner_index))
+                .map(|(i, _edge)| i)
+                .collect();
+            assert_equal!(new_relative_vertex_indeces.len(), 2);
+
             new_indeces.push(vec![
-                outer_indeces[0],
-                outer_indeces[1],
-                mid_vertex_index
+                corner_index,
+                index_offset + new_relative_vertex_indeces[0],
+                index_offset + new_relative_vertex_indeces[1]
             ]);
         }
-    };
+
+        //mid triangle
+        new_indeces.push(vec![
+            index_offset + 0,
+            index_offset + 1,
+            index_offset + 2
+        ]);
+    }
 
     (vertices, new_indeces)
 }

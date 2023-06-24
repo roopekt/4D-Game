@@ -21,8 +21,8 @@ pub struct Renderer<'a> {
     shader_programs: ShaderProgramContainer,
     text_renderer: text_rendering::TextRenderer<'a>,
     alternate_target: AlternateTarget,
-    BLIT_QUAD: mesh::StaticUploadedMesh3D,
-    VERTICAL_LINE: mesh::StaticUploadedMesh3D
+    BLIT_QUAD: mesh::StaticUploadedMeshSimple,
+    VERTICAL_LINE: mesh::StaticUploadedMeshSimple
 }
 impl<'a> Renderer<'a> {
     pub fn new(display: &glium::Display, global_data: &GlobalData) -> Self {
@@ -31,7 +31,7 @@ impl<'a> Renderer<'a> {
             text_renderer: text_rendering::TextRenderer::new(display, global_data),
             alternate_target: AlternateTarget::build(display),
             BLIT_QUAD: mesh::primitives::blit_quad().upload_static(display),
-            VERTICAL_LINE: mesh::primitives::vertical_line().upload_static_with_topology(display, glium::index::PrimitiveType::LinesList)
+            VERTICAL_LINE: mesh::primitives::vertical_line().upload_static(display)
         }
     }
 

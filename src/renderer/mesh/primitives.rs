@@ -1,4 +1,4 @@
-use super::{Mesh3D, Mesh4D, Vertex3D, Vertex4D};
+use super::{Mesh3D, Mesh4D, Vertex3D, Vertex4D, SimpleVertex, SimpleMesh};
 use glam::{Mat3, Vec3, Mat4, Vec4, Vec4Swizzles};
 use crate::game::transform::{AffineTransform3D, Transform3D, AffineTransform4D, Transform4D};
 use crate::errors::assert_equal;
@@ -6,17 +6,20 @@ use std::fmt::Debug as DebugTrait;
 use std::f32;
 use combinatorial::Combinations;
 
-pub fn blit_quad() -> Mesh3D {
-    quad_3D().as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
+pub fn blit_quad() -> SimpleMesh {
+    quad_3D()
+        .as_transformed(&Transform3D { scale: 2.0 * Vec3::ONE, ..Default::default() }.into())
+        .into()
 }
 
-pub fn vertical_line() -> Mesh3D {
-    Mesh3D {
+pub fn vertical_line() -> SimpleMesh {
+    SimpleMesh {
         vertices: vec![
-            Vertex3D { position: [0.0, -1.0, 0.0], normal: [0.0, 0.0, 0.0] },
-            Vertex3D { position: [0.0,  1.0, 0.0], normal: [0.0, 0.0, 0.0] }
+            SimpleVertex { position: [0.0, -1.0, 0.0] },
+            SimpleVertex { position: [0.0,  1.0, 0.0] }
         ],
-        indeces: vec![0, 1]
+        indeces: vec![0, 1],
+        topology: glium::index::PrimitiveType::LinesList
     }
 }
 

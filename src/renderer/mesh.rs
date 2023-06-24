@@ -7,7 +7,33 @@ use crate::game::transform::{AffineTransform3D, AffineTransform4D};
 
 type GpuIndexT = u16;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
+pub struct SimpleMesh {
+    pub vertices: Vec<SimpleVertex>,
+    pub indeces: Vec<usize>,
+    pub topology: glium::index::PrimitiveType
+}
+impl SimpleMesh {
+    pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMeshSimple {
+        StaticUploadedMeshSimple {
+            vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
+            indeces: get_gpu_indeces(display, self.topology, &self.indeces)
+        }
+    }
+}
+impl From<Mesh3D> for SimpleMesh {
+    fn from(mesh_3D: Mesh3D) -> Self {
+        Self {
+            vertices: mesh_3D.vertices.iter()
+                .map(|&v| SimpleVertex { position: v.position })
+                .collect(),
+            indeces: mesh_3D.indeces,
+            topology: glium::index::PrimitiveType::TrianglesList
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Mesh3D {
     pub vertices: Vec<Vertex3D>,
     pub indeces: Vec<usize>
@@ -19,17 +45,9 @@ impl Mesh3D {
     };
 
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh3D {
-        self.upload_static_with_topology(display, glium::index::PrimitiveType::TrianglesList)
-    }
-
-    pub fn upload_static_with_topology(&self, display: &glium::Display, topology: glium::index::PrimitiveType) -> StaticUploadedMesh3D {
-        let indeces: Vec<GpuIndexT> = self.indeces.iter()
-            .map(|&i| i.try_into().expect(&format!("Failed to convert index {} to {}", i, stringify!(GpuIndexT))))
-            .collect();
-
         StaticUploadedMesh3D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: glium::IndexBuffer::immutable(display, topology, &indeces).unwrap()
+            indeces: get_gpu_indeces(display, glium::index::PrimitiveType::TrianglesList, &self.indeces)
         }
     }
 
@@ -44,7 +62,7 @@ impl Mesh3D {
         return self;
     }
 }
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Mesh4D {
     pub vertices: Vec<Vertex4D>,
     pub indeces: Vec<usize>
@@ -56,17 +74,9 @@ impl Mesh4D {
     };
 
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh4D {
-        self.upload_static_with_topology(display, glium::index::PrimitiveType::LinesListAdjacency)
-    }
-
-    pub fn upload_static_with_topology(&self, display: &glium::Display, topology: glium::index::PrimitiveType) -> StaticUploadedMesh4D {
-        let indeces: Vec<GpuIndexT> = self.indeces.iter()
-            .map(|&i| i.try_into().expect(&format!("Failed to convert index {} to {}", i, stringify!(GpuIndexT))))
-            .collect();
-
         StaticUploadedMesh4D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: glium::IndexBuffer::immutable(display, topology, &indeces).unwrap()
+            indeces: get_gpu_indeces(display, glium::index::PrimitiveType::LinesListAdjacency, &self.indeces)
         }
     }
 
@@ -135,15 +145,26 @@ impl Sum for Mesh4D {
     }
 }
 
+#[derive(Debug)]
+pub struct StaticUploadedMeshSimple {
+    pub vertices: glium::VertexBuffer<SimpleVertex>,
+    pub indeces: glium::IndexBuffer<GpuIndexT>
+}
+#[derive(Debug)]
 pub struct StaticUploadedMesh3D {
     pub vertices: glium::VertexBuffer<Vertex3D>,
     pub indeces: glium::IndexBuffer<GpuIndexT>
 }
+#[derive(Debug)]
 pub struct StaticUploadedMesh4D {
     pub vertices: glium::VertexBuffer<Vertex4D>,
     pub indeces: glium::IndexBuffer<GpuIndexT>
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct SimpleVertex {
+    pub position: [f32; 3]
+}
 #[derive(Copy, Clone, Debug)]
 pub struct Vertex3D {
     pub position: [f32; 3],
@@ -155,6 +176,14 @@ pub struct Vertex4D {
     pub normal: [f32; 4]
 }
 
+glium::implement_vertex!(SimpleVertex, position);
+impl SimpleVertex {
+    pub fn transform(&mut self, transformation: &AffineTransform3D) {
+        let mut pos_vec: Vec3 = self.position.into();
+        pos_vec = transformation * &pos_vec;
+        self.position = pos_vec.into();
+    }
+}
 glium::implement_vertex!(Vertex3D, position, normal);
 impl Vertex3D {
     pub fn transform(&mut self, transformation: &AffineTransform3D) {
@@ -178,4 +207,12 @@ impl Vertex4D {
         normal_vec = transformation.point_transform_to_normal_transform() * normal_vec;
         self.normal = normal_vec.into(); 
     }
+}
+
+fn get_gpu_indeces(display: &glium::Display, topology: glium::index::PrimitiveType, cpu_indeces: &Vec<usize>) -> glium::IndexBuffer<GpuIndexT> {
+    let indeces: Vec<GpuIndexT> = cpu_indeces.iter()
+        .map(|&i| i.try_into().expect(&format!("Failed to convert index {} to {}", i, stringify!(GpuIndexT))))
+        .collect();
+
+    glium::IndexBuffer::immutable(display, topology, &indeces).unwrap()
 }

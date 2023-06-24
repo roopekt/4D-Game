@@ -201,21 +201,27 @@ pub fn tesseract_4D() -> Mesh4D {
 }
 
 pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
-    let mut vertices: Vec<Vec3> = get_low_poly_sphere_vertices_general_dimension(3)
-        .iter().map(|&v| v.xyz()).collect();
-    let mut triangle_indeces: Vec<[usize; 3]> = array_combinations(0..vertices.len()).collect();//all possible triangles
-
-    for _ in 0..subdivisions {
-        (vertices, triangle_indeces) = subdivide_unit_sphere_3D(vertices, triangle_indeces);
+    let vertices: Vec<CpuVertex3D> = get_low_poly_sphere_vertices_general_dimension(3)
+        .iter()
+        .map(|&v| v.xyz())
+        .map(|v| CpuVertex3D { position: v, normal: v })
+        .collect();
+    let indeces = array_combinations(0..vertices.len()).collect();//all possible triangles
+    let mut mesh = Mesh3D {
+        vertices: vertices,
+        indeces: indeces
     };
 
-    Mesh3D {
-        vertices: vertices
-            .iter()
-            .map(|&v| CpuVertex3D { position: v, normal: v })
-            .collect(),
-        indeces: triangle_indeces
-    }
+    for _ in 0..subdivisions {
+        mesh = mesh.subdivide();
+
+        //project onto the unit sphere
+        for vertex in mesh.vertices.iter_mut() {
+            vertex.position = vertex.position.normalize();
+        }
+    };
+
+    mesh
 }
 
 fn get_low_poly_sphere_vertices_general_dimension(dimension: usize) -> Vec<Vec4> {
@@ -237,46 +243,6 @@ fn get_low_poly_sphere_vertices_general_dimension(dimension: usize) -> Vec<Vec4>
 
     assert_equal!(vertices.len(), dimension + 1);
     vertices
-}
-
-fn subdivide_unit_sphere_3D(mut vertices: Vec<Vec3>, triangle_indeces: Vec<[usize; 3]>) -> (Vec<Vec3>, Vec<[usize; 3]>) {
-    let mut new_indeces = Vec::new();
-    for triangle in triangle_indeces {    
-        let index_offset = vertices.len();
-        let edges: Vec<Vec<usize>> = Combinations::of_size(triangle.clone(), 2).collect();
-        assert_equal!(edges.len(), 3);
-
-        //new vertices
-        for edge in &edges {
-            let mid_edge_vertex = ((vertices[edge[0]] + vertices[edge[1]]) * 0.5).normalize();
-            vertices.push(mid_edge_vertex);
-        }
-
-        //corner triangles
-        for corner_index in triangle {
-            let new_relative_vertex_indeces: Vec<usize> = edges.iter()
-                .enumerate()
-                .filter(|(_i, edge)| edge.contains(&corner_index))
-                .map(|(i, _edge)| i)
-                .collect();
-            assert_equal!(new_relative_vertex_indeces.len(), 2);
-
-            new_indeces.push([
-                corner_index,
-                index_offset + new_relative_vertex_indeces[0],
-                index_offset + new_relative_vertex_indeces[1]
-            ]);
-        }
-
-        //mid triangle
-        new_indeces.push([
-            index_offset + 0,
-            index_offset + 1,
-            index_offset + 2
-        ]);
-    }
-
-    (vertices, new_indeces)
 }
 
 fn all_bool_arrays<const BOOL_COUNT: usize>() -> Vec<[bool; BOOL_COUNT]> {

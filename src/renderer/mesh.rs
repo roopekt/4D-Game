@@ -9,14 +9,14 @@ type GpuIndexT = u32;
 
 #[derive(Debug, Clone)]
 pub struct SimpleMesh {
-    pub vertices: Vec<SimpleVertex>,
+    pub vertices: Vec<CpuVertexSimple>,
     pub indeces: Vec<usize>,
     pub topology: glium::index::PrimitiveType
 }
 impl SimpleMesh {
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMeshSimple {
         StaticUploadedMeshSimple {
-            vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
+            vertices: get_gpu_vertices(display, &self.vertices),
             indeces: get_gpu_indeces(display, self.topology, &self.indeces)
         }
     }
@@ -25,7 +25,7 @@ impl From<Mesh3D> for SimpleMesh {
     fn from(mesh_3D: Mesh3D) -> Self {
         Self {
             vertices: mesh_3D.vertices.iter()
-                .map(|&v| SimpleVertex { position: v.position })
+                .map(|&v| CpuVertexSimple { position: v.position })
                 .collect(),
             indeces: mesh_3D.flat_indeces(),
             topology: glium::index::PrimitiveType::TrianglesList
@@ -35,7 +35,7 @@ impl From<Mesh3D> for SimpleMesh {
 
 #[derive(Debug, Clone)]
 pub struct Mesh3D {
-    pub vertices: Vec<Vertex3D>,
+    pub vertices: Vec<CpuVertex3D>,
     pub indeces: Vec<[usize; 3]>
 }
 impl Mesh3D {
@@ -46,7 +46,7 @@ impl Mesh3D {
 
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh3D {
         StaticUploadedMesh3D {
-            vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
+            vertices: get_gpu_vertices(display, &self.vertices),
             indeces: get_gpu_indeces(display, glium::index::PrimitiveType::TrianglesList, &self.flat_indeces())
         }
     }
@@ -68,7 +68,7 @@ impl Mesh3D {
 }
 #[derive(Debug, Clone)]
 pub struct Mesh4D {
-    pub vertices: Vec<Vertex4D>,
+    pub vertices: Vec<CpuVertex4D>,
     pub indeces: Vec<[usize; 4]>
 }
 impl Mesh4D {
@@ -79,7 +79,7 @@ impl Mesh4D {
 
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh4D {
         StaticUploadedMesh4D {
-            vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
+            vertices: get_gpu_vertices(display, &self.vertices),
             indeces: get_gpu_indeces(display, glium::index::PrimitiveType::LinesListAdjacency, &self.flat_indeces())
         }
     }
@@ -157,66 +157,104 @@ impl Sum for Mesh4D {
 
 #[derive(Debug)]
 pub struct StaticUploadedMeshSimple {
-    pub vertices: glium::VertexBuffer<SimpleVertex>,
+    pub vertices: glium::VertexBuffer<GpuVertexSimple>,
     pub indeces: glium::IndexBuffer<GpuIndexT>
 }
 #[derive(Debug)]
 pub struct StaticUploadedMesh3D {
-    pub vertices: glium::VertexBuffer<Vertex3D>,
+    pub vertices: glium::VertexBuffer<GpuVertex3D>,
     pub indeces: glium::IndexBuffer<GpuIndexT>
 }
 #[derive(Debug)]
 pub struct StaticUploadedMesh4D {
-    pub vertices: glium::VertexBuffer<Vertex4D>,
+    pub vertices: glium::VertexBuffer<GpuVertex4D>,
     pub indeces: glium::IndexBuffer<GpuIndexT>
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct SimpleVertex {
+pub struct CpuVertexSimple {
+    pub position: Vec3
+}
+#[derive(Copy, Clone, Debug)]
+pub struct CpuVertex3D {
+    pub position: Vec3,
+    pub normal: Vec3
+}
+#[derive(Copy, Clone, Debug)]
+pub struct CpuVertex4D {
+    pub position: Vec4,
+    pub normal: Vec4
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct GpuVertexSimple {
     pub position: [f32; 3]
 }
 #[derive(Copy, Clone, Debug)]
-pub struct Vertex3D {
+pub struct GpuVertex3D {
     pub position: [f32; 3],
     pub normal: [f32; 3]
 }
 #[derive(Copy, Clone, Debug)]
-pub struct Vertex4D {
+pub struct GpuVertex4D {
     pub position: [f32; 4],
     pub normal: [f32; 4]
 }
 
-glium::implement_vertex!(SimpleVertex, position);
-impl SimpleVertex {
-    pub fn transform(&mut self, transformation: &AffineTransform3D) {
-        let mut pos_vec: Vec3 = self.position.into();
-        pos_vec = transformation * &pos_vec;
-        self.position = pos_vec.into();
+impl From<CpuVertexSimple> for GpuVertexSimple {
+    fn from(value: CpuVertexSimple) -> Self {
+        Self {
+            position: value.position.into()
+        }
     }
 }
-glium::implement_vertex!(Vertex3D, position, normal);
-impl Vertex3D {
-    pub fn transform(&mut self, transformation: &AffineTransform3D) {
-        let mut pos_vec: Vec3 = self.position.into();
-        pos_vec = transformation * &pos_vec;
-        self.position = pos_vec.into();
+impl From<CpuVertex3D> for GpuVertex3D {
+    fn from(value: CpuVertex3D) -> Self {
+        Self {
+            position: value.position.into(),
+            normal: value.normal.into()
+        }
+    }
+}
+impl From<CpuVertex4D> for GpuVertex4D {
+    fn from(value: CpuVertex4D) -> Self {
+        Self {
+            position: value.position.into(),
+            normal: value.normal.into()
+        }
+    }
+}
 
-        let mut normal_vec: Vec3 = self.normal.into();
-        normal_vec = transformation.point_transform_to_normal_transform() * normal_vec;
-        self.normal = normal_vec.into(); 
+glium::implement_vertex!(GpuVertexSimple, position);
+glium::implement_vertex!(GpuVertex3D, position, normal);
+glium::implement_vertex!(GpuVertex4D, position, normal);
+
+impl CpuVertexSimple {
+    pub fn transform(&mut self, transformation: &AffineTransform3D) {
+        self.position = transformation * &self.position;
     }
 }
-glium::implement_vertex!(Vertex4D, position, normal);
-impl Vertex4D {
+impl CpuVertex3D {
+    pub fn transform(&mut self, transformation: &AffineTransform3D) {
+        self.position = transformation * &self.position;
+        self.normal = transformation.point_transform_to_normal_transform() * self.normal;
+    }
+}
+impl CpuVertex4D {
     pub fn transform(&mut self, transformation: &AffineTransform4D) {
-        let mut pos_vec: Vec4 = self.position.into();
-        pos_vec = transformation * &pos_vec;
-        self.position = pos_vec.into();
-
-        let mut normal_vec: Vec4 = self.normal.into();
-        normal_vec = transformation.point_transform_to_normal_transform() * normal_vec;
-        self.normal = normal_vec.into(); 
+        self.position = transformation * &self.position;
+        self.normal = transformation.point_transform_to_normal_transform() * self.normal;
     }
+}
+
+fn get_gpu_vertices<V, CV>(display: &glium::Display, cpu_vertices: &Vec<CV>) -> glium::VertexBuffer<V>
+    where V: glium::Vertex + From<CV>, CV: Copy
+{
+    let vertices: Vec<V> = cpu_vertices.iter()
+        .map(|&v| v.into())
+        .collect();
+
+    glium::VertexBuffer::immutable(display, &vertices).unwrap()
 }
 
 fn get_gpu_indeces(display: &glium::Display, topology: glium::index::PrimitiveType, cpu_indeces: &Vec<usize>) -> glium::IndexBuffer<GpuIndexT> {

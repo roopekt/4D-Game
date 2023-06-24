@@ -1,4 +1,4 @@
-use super::{Mesh3D, Mesh4D, Vertex3D, Vertex4D, SimpleVertex, SimpleMesh};
+use super::{Mesh3D, Mesh4D, CpuVertex3D, CpuVertex4D, CpuVertexSimple, SimpleMesh};
 use glam::{Mat3, Vec3, Mat4, Vec4, Vec4Swizzles};
 use crate::game::transform::{AffineTransform3D, Transform3D, AffineTransform4D, Transform4D};
 use crate::errors::assert_equal;
@@ -15,8 +15,8 @@ pub fn blit_quad() -> SimpleMesh {
 pub fn vertical_line() -> SimpleMesh {
     SimpleMesh {
         vertices: vec![
-            SimpleVertex { position: [0.0, -1.0, 0.0] },
-            SimpleVertex { position: [0.0,  1.0, 0.0] }
+            CpuVertexSimple { position: Vec3::new(0.0, -1.0, 0.0) },
+            CpuVertexSimple { position: Vec3::new(0.0,  1.0, 0.0) }
         ],
         indeces: vec![0, 1],
         topology: glium::index::PrimitiveType::LinesList
@@ -56,8 +56,8 @@ pub fn quad_3D() -> Mesh3D {
     }
     assert_equal!(indeces.len(), 2);
 
-    let normal = [0.0, 0.0, 1.0];
-    let corner_signs_to_vertex = |signs: &CornerSigns| -> Vertex3D {
+    let normal = Vec3::Z;
+    let corner_signs_to_vertex = |signs: &CornerSigns| -> CpuVertex3D {
         let corner_sign_to_number = |sign: bool| {
             match sign {
                 false => -0.5,
@@ -65,12 +65,12 @@ pub fn quad_3D() -> Mesh3D {
             }
         };
 
-        Vertex3D {
-            position: [
+        CpuVertex3D {
+            position: Vec3::new(
                 corner_sign_to_number(signs[0]),
                 corner_sign_to_number(signs[1]),
                 0.0
-            ],
+            ),
             normal
         }
     };
@@ -119,8 +119,8 @@ pub fn cube_4D() -> Mesh4D {
     }
     assert_equal!(indeces.len(), 5);
 
-    let normal = [0.0, 0.0, 0.0, 1.0];
-    let corner_signs_to_vertex = |signs: &CornerSigns| -> Vertex4D {
+    let normal = Vec4::W;
+    let corner_signs_to_vertex = |signs: &CornerSigns| -> CpuVertex4D {
         let corner_sign_to_number = |sign: bool| {
             match sign {
                 false => -0.5,
@@ -128,13 +128,13 @@ pub fn cube_4D() -> Mesh4D {
             }
         };
 
-        Vertex4D {
-            position: [
+        CpuVertex4D {
+            position: Vec4::new(
                 corner_sign_to_number(signs[0]),
                 corner_sign_to_number(signs[1]),
                 corner_sign_to_number(signs[2]),
                 0.0
-            ],
+            ),
             normal
         }
     };
@@ -212,7 +212,7 @@ pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
     Mesh3D {
         vertices: vertices
             .iter()
-            .map(|&v| Vertex3D { position: v.into(), normal: v.into() })
+            .map(|&v| CpuVertex3D { position: v, normal: v })
             .collect(),
         indeces: triangle_indeces
     }

@@ -5,7 +5,7 @@ use std::iter::Sum;
 use glam::{Vec3, Vec4};
 use crate::game::transform::{AffineTransform3D, AffineTransform4D};
 
-type GpuIndexT = u16;
+type GpuIndexT = u32;
 
 #[derive(Debug, Clone)]
 pub struct SimpleMesh {
@@ -27,7 +27,7 @@ impl From<Mesh3D> for SimpleMesh {
             vertices: mesh_3D.vertices.iter()
                 .map(|&v| SimpleVertex { position: v.position })
                 .collect(),
-            indeces: mesh_3D.indeces,
+            indeces: mesh_3D.flat_indeces(),
             topology: glium::index::PrimitiveType::TrianglesList
         }
     }
@@ -36,7 +36,7 @@ impl From<Mesh3D> for SimpleMesh {
 #[derive(Debug, Clone)]
 pub struct Mesh3D {
     pub vertices: Vec<Vertex3D>,
-    pub indeces: Vec<usize>
+    pub indeces: Vec<[usize; 3]>
 }
 impl Mesh3D {
     const EMPTY: Self = Self {
@@ -47,7 +47,7 @@ impl Mesh3D {
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh3D {
         StaticUploadedMesh3D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: get_gpu_indeces(display, glium::index::PrimitiveType::TrianglesList, &self.indeces)
+            indeces: get_gpu_indeces(display, glium::index::PrimitiveType::TrianglesList, &self.flat_indeces())
         }
     }
 
@@ -61,11 +61,15 @@ impl Mesh3D {
         self.transform(transformation);
         return self;
     }
+
+    pub fn flat_indeces(&self) -> Vec<usize> {
+        self.indeces.iter().flatten().copied().collect()
+    }
 }
 #[derive(Debug, Clone)]
 pub struct Mesh4D {
     pub vertices: Vec<Vertex4D>,
-    pub indeces: Vec<usize>
+    pub indeces: Vec<[usize; 4]>
 }
 impl Mesh4D {
     const EMPTY: Self = Self {
@@ -76,7 +80,7 @@ impl Mesh4D {
     pub fn upload_static(&self, display: &glium::Display) -> StaticUploadedMesh4D {
         StaticUploadedMesh4D {
             vertices: glium::VertexBuffer::immutable(display, &self.vertices).unwrap(),
-            indeces: get_gpu_indeces(display, glium::index::PrimitiveType::LinesListAdjacency, &self.indeces)
+            indeces: get_gpu_indeces(display, glium::index::PrimitiveType::LinesListAdjacency, &self.flat_indeces())
         }
     }
 
@@ -90,30 +94,36 @@ impl Mesh4D {
         self.transform(transformation);
         return self;
     }
+
+    pub fn flat_indeces(&self) -> Vec<usize> {
+        self.indeces.iter().flatten().copied().collect()
+    }
 }
 
 impl AddAssign for Mesh3D {
-    fn add_assign(&mut self, rhs: Self) {
+    fn add_assign(&mut self, mut rhs: Self) {
         let index_ofset = self.vertices.len();
-        let rhs_indeces: Vec<usize> = rhs.indeces
-            .iter()
-            .map(|i| i + index_ofset)
-            .collect();
+        for prim in rhs.indeces.iter_mut() {
+            for i in prim.iter_mut() {
+                *i += index_ofset;
+            }
+        }
 
         self.vertices.extend(rhs.vertices);
-        self.indeces.extend(rhs_indeces);
+        self.indeces.extend(rhs.indeces);
     }
 }
 impl AddAssign for Mesh4D {
-    fn add_assign(&mut self, rhs: Self) {
+    fn add_assign(&mut self, mut rhs: Self) {
         let index_ofset = self.vertices.len();
-        let rhs_indeces: Vec<usize> = rhs.indeces
-            .iter()
-            .map(|i| i + index_ofset)
-            .collect();
+        for prim in rhs.indeces.iter_mut() {
+            for i in prim.iter_mut() {
+                *i += index_ofset;
+            }
+        }
 
         self.vertices.extend(rhs.vertices);
-        self.indeces.extend(rhs_indeces);
+        self.indeces.extend(rhs.indeces);
     }
 }
 

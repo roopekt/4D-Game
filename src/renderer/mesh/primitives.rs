@@ -43,16 +43,18 @@ pub fn quad_3D() -> Mesh3D {
     }
     assert_equal!(corners_of_diagonal.len(), 2);
 
-    let mut triangle_indeces: Vec<usize> = Vec::new();
+    let mut indeces: Vec<[usize; 3]> = Vec::new();
     for i in 0..corners.len() {
         let corner_i = &corners[i];
         if !corners_of_diagonal.contains(corner_i) {
-            triangle_indeces.push(i);
-            triangle_indeces.push(index_of([!corner_i[0],  corner_i[1]], &corners));
-            triangle_indeces.push(index_of([ corner_i[0], !corner_i[1]], &corners));
+            indeces.push([
+                i,
+                index_of([!corner_i[0],  corner_i[1]], &corners),
+                index_of([ corner_i[0], !corner_i[1]], &corners)
+            ]);
         }
     }
-    assert_equal!(triangle_indeces.len(), 2*3);
+    assert_equal!(indeces.len(), 2);
 
     let normal = [0.0, 0.0, 1.0];
     let corner_signs_to_vertex = |signs: &CornerSigns| -> Vertex3D {
@@ -78,7 +80,7 @@ pub fn quad_3D() -> Mesh3D {
             .iter()
             .map(|&c| corner_signs_to_vertex(&c))
             .collect(),
-        indeces: triangle_indeces
+        indeces
     }
 }
 
@@ -101,20 +103,21 @@ pub fn cube_4D() -> Mesh4D {
     }
     assert_equal!(corners_of_central.len(), 4);
 
-    let mut tetrahedron_indeces: Vec<usize> = corners_of_central
-        .iter()
+    let mut indeces: Vec<[usize; 4]> = vec![corners_of_central.iter()
         .map(|corner| index_of(*corner, &corners))
-        .collect();
+        .collect::<Vec<usize>>().try_into().unwrap()];
     for i in 0..corners.len() {
         let corner_i = &corners[i];
         if !corners_of_central.contains(corner_i) {
-            tetrahedron_indeces.push(i);
-            tetrahedron_indeces.push(index_of([!corner_i[0],  corner_i[1],  corner_i[2]], &corners));
-            tetrahedron_indeces.push(index_of([ corner_i[0], !corner_i[1],  corner_i[2]], &corners));
-            tetrahedron_indeces.push(index_of([ corner_i[0],  corner_i[1], !corner_i[2]], &corners));
+            indeces.push([
+                i,
+                index_of([!corner_i[0],  corner_i[1],  corner_i[2]], &corners),
+                index_of([ corner_i[0], !corner_i[1],  corner_i[2]], &corners),
+                index_of([ corner_i[0],  corner_i[1], !corner_i[2]], &corners)
+            ]);
         }
     }
-    assert_equal!(tetrahedron_indeces.len(), 5*4);
+    assert_equal!(indeces.len(), 5);
 
     let normal = [0.0, 0.0, 0.0, 1.0];
     let corner_signs_to_vertex = |signs: &CornerSigns| -> Vertex4D {
@@ -141,7 +144,7 @@ pub fn cube_4D() -> Mesh4D {
             .iter()
             .map(|&c| corner_signs_to_vertex(&c))
             .collect(),
-        indeces: tetrahedron_indeces
+        indeces
     }
 }
 
@@ -200,8 +203,7 @@ pub fn tesseract_4D() -> Mesh4D {
 pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
     let mut vertices: Vec<Vec3> = get_low_poly_sphere_vertices_general_dimension(3)
         .iter().map(|&v| v.xyz()).collect();
-    let mut triangle_indeces: Vec<Vec<usize>> = Combinations::of_size(0..vertices.len(), 3)
-        .collect(); //all possible triangles
+    let mut triangle_indeces: Vec<[usize; 3]> = array_combinations(0..vertices.len()).collect();//all possible triangles
 
     for _ in 0..subdivisions {
         (vertices, triangle_indeces) = subdivide_unit_sphere_3D(vertices, triangle_indeces);
@@ -213,7 +215,6 @@ pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
             .map(|&v| Vertex3D { position: v.into(), normal: v.into() })
             .collect(),
         indeces: triangle_indeces
-            .iter().flatten().cloned().collect()
     }
 }
 
@@ -238,7 +239,7 @@ fn get_low_poly_sphere_vertices_general_dimension(dimension: usize) -> Vec<Vec4>
     vertices
 }
 
-fn subdivide_unit_sphere_3D(mut vertices: Vec<Vec3>, triangle_indeces: Vec<Vec<usize>>) -> (Vec<Vec3>, Vec<Vec<usize>>) {
+fn subdivide_unit_sphere_3D(mut vertices: Vec<Vec3>, triangle_indeces: Vec<[usize; 3]>) -> (Vec<Vec3>, Vec<[usize; 3]>) {
     let mut new_indeces = Vec::new();
     for triangle in triangle_indeces {    
         let index_offset = vertices.len();
@@ -260,7 +261,7 @@ fn subdivide_unit_sphere_3D(mut vertices: Vec<Vec3>, triangle_indeces: Vec<Vec<u
                 .collect();
             assert_equal!(new_relative_vertex_indeces.len(), 2);
 
-            new_indeces.push(vec![
+            new_indeces.push([
                 corner_index,
                 index_offset + new_relative_vertex_indeces[0],
                 index_offset + new_relative_vertex_indeces[1]
@@ -268,7 +269,7 @@ fn subdivide_unit_sphere_3D(mut vertices: Vec<Vec3>, triangle_indeces: Vec<Vec<u
         }
 
         //mid triangle
-        new_indeces.push(vec![
+        new_indeces.push([
             index_offset + 0,
             index_offset + 1,
             index_offset + 2
@@ -303,4 +304,9 @@ fn int_to_bool_array<const COUNT: usize>(int: u32) -> [bool; COUNT] {
 
 fn index_of<T: PartialEq + DebugTrait>(element: T, vec: &Vec<T>) -> usize {
     vec.iter().position(|e| *e == element).expect(&format!("Didn't find {:?}", element))
+}
+
+fn array_combinations<T: Ord + Clone + DebugTrait, const COMBINATION_SIZE: usize>(source: impl IntoIterator<Item = T>) -> impl Iterator<Item = [T; COMBINATION_SIZE]> {
+    Combinations::of_size(source, COMBINATION_SIZE)
+        .map(|c| c.try_into().expect("Combinations::of_size should return vectors of compatible length."))
 }

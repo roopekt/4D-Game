@@ -1,11 +1,9 @@
 pub mod primitives;
+pub mod vertex;
+mod mesh_edit;
 
-use std::ops::{Add, AddAssign};
-use std::iter::Sum;
-use combinatorial::Combinations;
-use glam::{Vec3, Vec4};
-use crate::errors::assert_equal;
 use crate::game::transform::{AffineTransform3D, AffineTransform4D};
+use vertex::*;
 
 type GpuIndexT = u32;
 
@@ -67,50 +65,6 @@ impl Mesh3D {
     pub fn flat_indeces(&self) -> Vec<usize> {
         self.indeces.iter().flatten().copied().collect()
     }
-
-    pub fn subdivide(self) -> Self {
-        let mut new_vertices = self.vertices;
-        let mut new_indeces = Vec::new();
-        for &triangle in &self.indeces {    
-            let index_offset = new_vertices.len();
-            let edges: Vec<Vec<usize>> = Combinations::of_size(triangle.clone(), 2).collect();
-            assert_equal!(edges.len(), 3);
-    
-            //new vertices
-            for edge in &edges {
-                let mid_edge_vertex = CpuVertex3D::mean([new_vertices[edge[0]], new_vertices[edge[1]]]);
-                new_vertices.push(mid_edge_vertex);
-            }
-    
-            //corner triangles
-            for corner_index in triangle {
-                let new_relative_vertex_indeces: Vec<usize> = edges.iter()
-                    .enumerate()
-                    .filter(|(_i, edge)| edge.contains(&corner_index))
-                    .map(|(i, _edge)| i)
-                    .collect();
-                assert_equal!(new_relative_vertex_indeces.len(), 2);
-    
-                new_indeces.push([
-                    corner_index,
-                    index_offset + new_relative_vertex_indeces[0],
-                    index_offset + new_relative_vertex_indeces[1]
-                ]);
-            }
-    
-            //mid triangle
-            new_indeces.push([
-                index_offset + 0,
-                index_offset + 1,
-                index_offset + 2
-            ]);
-        }
-    
-        Mesh3D {
-            vertices: new_vertices,
-            indeces: new_indeces
-        }
-    }
 }
 #[derive(Debug, Clone)]
 pub struct Mesh4D {
@@ -146,61 +100,6 @@ impl Mesh4D {
     }
 }
 
-impl AddAssign for Mesh3D {
-    fn add_assign(&mut self, mut rhs: Self) {
-        let index_ofset = self.vertices.len();
-        for prim in rhs.indeces.iter_mut() {
-            for i in prim.iter_mut() {
-                *i += index_ofset;
-            }
-        }
-
-        self.vertices.extend(rhs.vertices);
-        self.indeces.extend(rhs.indeces);
-    }
-}
-impl AddAssign for Mesh4D {
-    fn add_assign(&mut self, mut rhs: Self) {
-        let index_ofset = self.vertices.len();
-        for prim in rhs.indeces.iter_mut() {
-            for i in prim.iter_mut() {
-                *i += index_ofset;
-            }
-        }
-
-        self.vertices.extend(rhs.vertices);
-        self.indeces.extend(rhs.indeces);
-    }
-}
-
-impl Add for Mesh3D {
-    type Output = Self;
-
-    fn add(mut self, rhs: Self) -> Self::Output {
-        self += rhs;
-        return self;
-    }
-}
-impl Add for Mesh4D {
-    type Output = Self;
-
-    fn add(mut self, rhs: Self) -> Self::Output {
-        self += rhs;
-        return self;
-    }
-}
-
-impl Sum for Mesh3D {
-    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(Self::EMPTY, |a, b| a + b)
-    }
-}
-impl Sum for Mesh4D {
-    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(Self::EMPTY, |a, b| a + b)
-    }
-}
-
 #[derive(Debug)]
 pub struct StaticUploadedMeshSimple {
     pub vertices: glium::VertexBuffer<GpuVertexSimple>,
@@ -215,108 +114,6 @@ pub struct StaticUploadedMesh3D {
 pub struct StaticUploadedMesh4D {
     pub vertices: glium::VertexBuffer<GpuVertex4D>,
     pub indeces: glium::IndexBuffer<GpuIndexT>
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct CpuVertexSimple {
-    pub position: Vec3
-}
-#[derive(Copy, Clone, Debug)]
-pub struct CpuVertex3D {
-    pub position: Vec3,
-    pub normal: Vec3
-}
-#[derive(Copy, Clone, Debug)]
-pub struct CpuVertex4D {
-    pub position: Vec4,
-    pub normal: Vec4
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct GpuVertexSimple {
-    pub position: [f32; 3]
-}
-#[derive(Copy, Clone, Debug)]
-pub struct GpuVertex3D {
-    pub position: [f32; 3],
-    pub normal: [f32; 3]
-}
-#[derive(Copy, Clone, Debug)]
-pub struct GpuVertex4D {
-    pub position: [f32; 4],
-    pub normal: [f32; 4]
-}
-
-impl From<CpuVertexSimple> for GpuVertexSimple {
-    fn from(value: CpuVertexSimple) -> Self {
-        Self {
-            position: value.position.into()
-        }
-    }
-}
-impl From<CpuVertex3D> for GpuVertex3D {
-    fn from(value: CpuVertex3D) -> Self {
-        Self {
-            position: value.position.into(),
-            normal: value.normal.into()
-        }
-    }
-}
-impl From<CpuVertex4D> for GpuVertex4D {
-    fn from(value: CpuVertex4D) -> Self {
-        Self {
-            position: value.position.into(),
-            normal: value.normal.into()
-        }
-    }
-}
-
-glium::implement_vertex!(GpuVertexSimple, position);
-glium::implement_vertex!(GpuVertex3D, position, normal);
-glium::implement_vertex!(GpuVertex4D, position, normal);
-
-impl CpuVertexSimple {
-    pub fn transform(&mut self, transformation: &AffineTransform3D) {
-        self.position = transformation * &self.position;
-    }
-}
-impl CpuVertex3D {
-    pub fn transform(&mut self, transformation: &AffineTransform3D) {
-        self.position = transformation * &self.position;
-        self.normal = transformation.point_transform_to_normal_transform() * self.normal;
-    }
-
-    pub fn mean<const N: usize>(vertices: [Self; N]) -> Self {
-        let count = vertices.len() as f32;
-        Self {
-            position: vertices.iter()
-                .map(|&v| v.position)
-                .sum::<Vec3>() / count,
-            normal: (vertices.iter()
-                .map(|&v| v.normal)
-                .sum::<Vec3>() / count)
-                .normalize(),
-        }
-    }
-}
-impl CpuVertex4D {
-    pub fn transform(&mut self, transformation: &AffineTransform4D) {
-        self.position = transformation * &self.position;
-        self.normal = transformation.point_transform_to_normal_transform() * self.normal;
-    }
-
-    pub fn mean<const N: usize>(vertices: [Self; N]) -> Self {
-        let count = vertices.len() as f32;
-        Self {
-            position: vertices.iter()
-                .map(|&v| v.position)
-                .sum::<Vec4>() / count,
-            normal: (vertices.iter()
-                .map(|&v| v.normal)
-                .sum::<Vec4>() / count)
-                .normalize(),
-        }
-    }
 }
 
 fn get_gpu_vertices<V, CV>(display: &glium::Display, cpu_vertices: &Vec<CV>) -> glium::VertexBuffer<V>

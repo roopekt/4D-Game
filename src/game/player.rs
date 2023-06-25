@@ -165,10 +165,10 @@ pub fn player_projection_matrix_4D(global_data: &GlobalData) -> AffineTransform4
 
     AffineTransform4D {
         linear_transform: matrix4x4![
-            z/aspect, 0.0, 0.0, 0.0,
-            0.0,      1.0, 0.0, 0.0,
-            0.0,      0.0, z,   0.0,
-            0.0,      0.0, 0.0, (near+far)/(far-near)
+            1.0, 0.0,      0.0, 0.0,
+            0.0, z/aspect, 0.0, 0.0,
+            0.0, 0.0,      z,   0.0,
+            0.0, 0.0,      0.0, (near+far)/(far-near)
         ],
         translation: Vec4::new(0.0, 0.0, 0.0, -(2.0*near*far)/(far-near))
     }

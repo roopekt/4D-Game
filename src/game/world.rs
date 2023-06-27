@@ -143,11 +143,13 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
 
+    const TESSERACT_COUNT: usize = 70;
+    const SPHERE_COUNT: usize = 70;
+    const SPAWN_RADIUS: f32 = 7.0;
+
     //random tesseracts
-    const TESSERACT_COUNT: usize = 150;
     let tesseract = mesh::primitives::tesseract_4D();
     for _ in 0..TESSERACT_COUNT {
-        const SPAWN_RADIUS: f32 = 7.0;
         let position = Vec4::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
         let orientation = rotation::random_4D_nonuniform(&mut rng);
         let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));
@@ -155,6 +157,19 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
         objects.push(RenderableObject4D {
             transform: Transform4D { position, orientation, ..Default::default() }.into(),
             mesh: tesseract.clone().upload_static(display),
+            material: materials::SingleColorMaterial { albedo_color: color }
+        });
+    }
+
+    //random spheres
+    let sphere = mesh::primitives::sphere_4D(4);
+    for _ in 0..SPHERE_COUNT {
+        let position = Vec4::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
+        let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));
+
+        objects.push(RenderableObject4D {
+            transform: Transform4D { position, ..Default::default() }.into(),
+            mesh: sphere.clone().upload_static(display),
             material: materials::SingleColorMaterial { albedo_color: color }
         });
     }

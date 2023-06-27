@@ -9,6 +9,8 @@ pub use sphere::*;
 use super::{Mesh3D, Mesh4D, CpuVertex3D, CpuVertex4D, CpuVertexSimple, SimpleMesh};
 use glam::Vec3;
 use crate::game::transform::Transform3D;
+use std::fmt::Debug as DebugTrait;
+use combinatorial::Combinations;
 
 pub fn blit_quad() -> SimpleMesh {
     quad_3D()
@@ -25,4 +27,13 @@ pub fn vertical_line() -> SimpleMesh {
         indeces: vec![0, 1],
         topology: glium::index::PrimitiveType::LinesList
     }
+}
+
+pub fn index_of<T: PartialEq + DebugTrait>(element: T, vec: &Vec<T>) -> usize {
+    vec.iter().position(|e| *e == element).expect(&format!("Didn't find {:?}", element))
+}
+
+pub fn combinations_csize<T: Ord + Clone + DebugTrait, const COMBINATION_SIZE: usize>(source: impl IntoIterator<Item = T>) -> impl Iterator<Item = [T; COMBINATION_SIZE]> {
+    Combinations::of_size(source, COMBINATION_SIZE)
+        .map(|c| c.try_into().expect("Combinations::of_size should return vectors of compatible length."))
 }

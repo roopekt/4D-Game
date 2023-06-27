@@ -1,7 +1,7 @@
 use super::{Mesh3D, Mesh4D, CpuVertex3D, CpuVertex4D};
 use glam::{Vec3, Vec4};
 use crate::errors::assert_equal;
-use std::fmt::Debug as DebugTrait;
+use super::index_of;
 
 //yes, this is a very convoluted way to get a quad, but this is easier to generalize to 4D
 pub fn quad_3D() -> Mesh3D {
@@ -149,8 +149,4 @@ fn int_to_bool_array<const COUNT: usize>(int: u32) -> [bool; COUNT] {
         .map(|i| ((int >> i) & 1) == 1)
         .collect();
     vec.try_into().unwrap()
-}
-
-fn index_of<T: PartialEq + DebugTrait>(element: T, vec: &Vec<T>) -> usize {
-    vec.iter().position(|e| *e == element).expect(&format!("Didn't find {:?}", element))
 }

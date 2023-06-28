@@ -2,9 +2,9 @@ use std::ops::{Add, AddAssign};
 use std::iter::Sum;
 use crate::errors::assert_equal;
 use super::{Mesh3D, Mesh4D};
-use super::primitives::{index_of, combinations_csize};
+use super::primitives::{combinations_csize, all_edges, EdgeIndeces};
 use super::vertex::{CpuVertex3D, CpuVertex4D};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 impl AddAssign for Mesh3D {
     fn add_assign(&mut self, mut rhs: Self) {
@@ -63,109 +63,121 @@ impl Sum for Mesh4D {
 
 impl Mesh3D {
     pub fn subdivide(self) -> Self {
-        let mut new_vertices = self.vertices;
-        let mut new_indeces = Vec::new();
-        for &triangle in &self.indeces {    
-            let index_offset = new_vertices.len();
-            let edges: Vec<[usize; 2]> = combinations_csize(triangle.clone()).collect();
-            assert_equal!(edges.len(), 3);
+        let mut vertices = self.vertices;
+        let mut indeces = Vec::new();
+        let mut edge_vertex_index_from_edge = HashMap::<EdgeIndeces, usize>::new();
 
-            //new vertices
-            for edge in &edges {
-                let mid_edge_vertex = CpuVertex3D::mean([new_vertices[edge[0]], new_vertices[edge[1]]]);
-                new_vertices.push(mid_edge_vertex);//DUPLICATE, edge is shared
+        for &triangle in &self.indeces {    
+            let primitive_edges: Vec<EdgeIndeces> = all_edges(triangle.clone()).collect();
+            assert_equal!(primitive_edges.len(), 3);
+
+            //new vertices and their indeces
+            let mut all_edge_vertex_indeces = Vec::new();
+            for edge in &primitive_edges {
+                let edge_vertex_index = edge_vertex_index_from_edge
+                    .entry(*edge)
+                    .or_insert_with(|| {
+                        vertices.push(CpuVertex3D::mean([vertices[edge.A], vertices[edge.B]]));
+                        vertices.len() - 1//index of the just pushed vertex
+                    }
+                ).clone();
+                all_edge_vertex_indeces.push(edge_vertex_index);
             }
+            assert_equal!(all_edge_vertex_indeces.len(), 3);
 
             //corner triangles
             for corner_index in triangle {
-                let new_relative_vertex_indeces: Vec<usize> = edges.iter()
-                    .enumerate()
-                    .filter(|(_i, edge)| edge.contains(&corner_index))
-                    .map(|(i, _edge)| i)
+                let corner_edge_vertex_indeces: Vec<usize> = primitive_edges.iter()
+                    .filter(|edge| edge.has_index(&corner_index))
+                    .map(|edge| *edge_vertex_index_from_edge.get(edge).unwrap())
                     .collect();
-                assert_equal!(new_relative_vertex_indeces.len(), 2);
+                assert_equal!(corner_edge_vertex_indeces.len(), 2);
 
-                new_indeces.push([
+                indeces.push([
                     corner_index,
-                    index_offset + new_relative_vertex_indeces[0],
-                    index_offset + new_relative_vertex_indeces[1]
+                    corner_edge_vertex_indeces[0],
+                    corner_edge_vertex_indeces[1]
                 ]);
             }
 
             //mid triangle
-            new_indeces.push([
-                index_offset + 0,
-                index_offset + 1,
-                index_offset + 2
-            ]);
+            indeces.push(all_edge_vertex_indeces.try_into().unwrap());
         }
 
         Self {
-            vertices: new_vertices,
-            indeces: new_indeces
+            vertices,
+            indeces
         }
     }
 }
 impl Mesh4D {
     pub fn subdivide(self) -> Self {
-        let mut new_vertices = self.vertices;
-        let mut new_indeces = Vec::new();
-        for &tetrahedron in &self.indeces {    
-            let index_offset = new_vertices.len();
-            let edges: Vec<[usize; 2]> = combinations_csize(tetrahedron.clone()).collect();
-            assert_equal!(edges.len(), 6);
+        let mut vertices = self.vertices;
+        let mut indeces = Vec::new();
+        let mut edge_vertex_index_from_edge = HashMap::<EdgeIndeces, usize>::new();
 
-            //new vertices
-            for edge in &edges {
-                let mid_edge_vertex = CpuVertex4D::mean([new_vertices[edge[0]], new_vertices[edge[1]]]);
-                new_vertices.push(mid_edge_vertex);//DUPLICATE, edge is shared
+        for &tetrahedron in &self.indeces {    
+            let primitive_edges: Vec<EdgeIndeces> = all_edges(tetrahedron.clone()).collect();
+            assert_equal!(primitive_edges.len(), 6);
+
+            //new vertices and their indeces
+            let mut all_edge_vertex_indeces = Vec::new();
+            for edge in &primitive_edges {
+                let edge_vertex_index = edge_vertex_index_from_edge
+                    .entry(*edge)
+                    .or_insert_with(|| {
+                        vertices.push(CpuVertex4D::mean([vertices[edge.A], vertices[edge.B]]));
+                        vertices.len() - 1//index of the just pushed vertex
+                    }
+                ).clone();
+                all_edge_vertex_indeces.push(edge_vertex_index);
             }
+            assert_equal!(all_edge_vertex_indeces.len(), 6);
 
             //corner tetrahedra
             for corner_index in tetrahedron {
-                let new_relative_vertex_indeces: Vec<usize> = edges.iter()
-                    .enumerate()
-                    .filter(|(_i, edge)| edge.contains(&corner_index))
-                    .map(|(i, _edge)| i)
+                let corner_edge_vertex_indeces: Vec<usize> = primitive_edges.iter()
+                    .filter(|edge| edge.has_index(&corner_index))
+                    .map(|edge| *edge_vertex_index_from_edge.get(edge).unwrap())
                     .collect();
-                assert_equal!(new_relative_vertex_indeces.len(), 3);
+                assert_equal!(corner_edge_vertex_indeces.len(), 3);
 
-                new_indeces.push([
+                indeces.push([
                     corner_index,
-                    index_offset + new_relative_vertex_indeces[0],
-                    index_offset + new_relative_vertex_indeces[1],
-                    index_offset + new_relative_vertex_indeces[2]
+                    corner_edge_vertex_indeces[0],
+                    corner_edge_vertex_indeces[1],
+                    corner_edge_vertex_indeces[2]
                 ]);
             }
             
             //mid octahedron helper data
-            let mid_octahedron_indeces = index_offset .. index_offset + edges.len();//indeces of new vertices
-            let mid_octahedron_diagonal_A = [
-                index_offset + index_of([tetrahedron[0], tetrahedron[1]], &edges),
-                index_offset + index_of([tetrahedron[2], tetrahedron[3]], &edges),
-            ];
-            let mid_octahedron_diagonal_B = [
-                index_offset + index_of([tetrahedron[0], tetrahedron[2]], &edges),
-                index_offset + index_of([tetrahedron[1], tetrahedron[3]], &edges),
-            ];
-            let mut mid_octahedron_tetrahedralization_edges: HashSet<[usize; 2]> = combinations_csize(mid_octahedron_indeces.clone()).collect();
-            assert!(mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_A));
-            assert!(mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_B));
+            let mid_octahedron_indeces = all_edge_vertex_indeces;
+            let mid_octahedron_diagonal_A = EdgeIndeces::new(
+                *edge_vertex_index_from_edge.get(&EdgeIndeces::new(tetrahedron[0], tetrahedron[1])).unwrap(),
+                *edge_vertex_index_from_edge.get(&EdgeIndeces::new(tetrahedron[2], tetrahedron[3])).unwrap()
+            );
+            let mid_octahedron_diagonal_B = EdgeIndeces::new(
+                *edge_vertex_index_from_edge.get(&EdgeIndeces::new(tetrahedron[0], tetrahedron[2])).unwrap(),
+                *edge_vertex_index_from_edge.get(&EdgeIndeces::new(tetrahedron[1], tetrahedron[3])).unwrap()
+            );
+            let mut mid_octahedron_tetrahedralization_edges: HashSet<EdgeIndeces> = all_edges(mid_octahedron_indeces.clone()).collect();
+            mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_A);
+            mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_B);
             assert_equal!(mid_octahedron_tetrahedralization_edges.len(), 12 + 1);//should now have all outer edges, and one diagonal
 
             //add mid octahedron tetrahedra
             let mid_octahedron_tetrahedra: Vec<[usize; 4]> = combinations_csize(mid_octahedron_indeces)
                 .filter(|&tetrahedron|
-                    combinations_csize(tetrahedron)
-                    .all(|edge: [usize; 2]| mid_octahedron_tetrahedralization_edges.contains(&edge)))
+                    all_edges(tetrahedron)
+                    .all(|edge| mid_octahedron_tetrahedralization_edges.contains(&edge)))
                 .collect();
             assert_equal!(mid_octahedron_tetrahedra.len(), 4);
-            new_indeces.extend_from_slice(&mid_octahedron_tetrahedra);
+            indeces.extend_from_slice(&mid_octahedron_tetrahedra);
         }
 
         Self {
-            vertices: new_vertices,
-            indeces: new_indeces
+            vertices,
+            indeces
         }
     }
 }

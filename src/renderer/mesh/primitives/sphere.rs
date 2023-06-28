@@ -49,6 +49,7 @@ pub fn sphere_4D(subdivisions: usize) -> Mesh4D {
     mesh
 }
 
+//tetrahedron in 3D, 5-cell in 4D
 fn get_low_poly_sphere_vertices_general_dimension(dimension: usize) -> Vec<Vec4> {
     let mut vertices = vec![Vec4::ZERO];
     const BASIS_VECTORS: [Vec4; 4] = [Vec4::X, Vec4::Y, Vec4::Z, Vec4::W];

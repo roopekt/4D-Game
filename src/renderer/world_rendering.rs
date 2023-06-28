@@ -1,3 +1,4 @@
+use glium::PolygonMode;
 use crate::game::world::{World3D, World4D};
 use crate::game::player;
 use crate::global_data::{GlobalData, VisualMode};
@@ -34,6 +35,9 @@ impl Renderer<'_> {
                 write: true,
                 .. Default::default()
             },
+            polygon_mode: global_data.polygon_mode,
+            line_width: if global_data.polygon_mode == PolygonMode::Line { Some(global_data.options.dev.debug.line_width) } else { None },
+            point_size: if global_data.polygon_mode == PolygonMode::Point { Some(global_data.options.dev.debug.point_size) } else { None },
             .. Default::default()
         };
 
@@ -98,6 +102,9 @@ impl Renderer<'_> {
                 write: true,
                 .. Default::default()
             },
+            polygon_mode: global_data.polygon_mode,
+            line_width: if global_data.polygon_mode == PolygonMode::Line { Some(global_data.options.dev.debug.line_width) } else { None },
+            point_size: if global_data.polygon_mode == PolygonMode::Point { Some(global_data.options.dev.debug.point_size) } else { None },
             .. Default::default()
         };
 

@@ -12,5 +12,9 @@
         "ambient_color": [0.5, 0.5, 0.5],
         "linear_attenuation": 0.14,
         "quadratic_attenuation": 0.07
+    },
+    "debug": {
+        "line_width": 1.5,
+        "point_size": 3.5
     }
 }

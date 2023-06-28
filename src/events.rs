@@ -34,6 +34,9 @@ pub fn handle_event(event: event::Event<()>, input_handler: &mut InputHandler, g
                     event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::F3), state: ElementState::Pressed, .. } => {
                         global_data.info_screen_visible = !global_data.info_screen_visible;
                     },
+                    event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::F4), state: ElementState::Pressed, .. } => {
+                        cycle_polygon_mode(global_data);
+                    },
                     event::KeyboardInput { virtual_keycode: Some(VirtualKeyCode::Key1), state: ElementState::Pressed, .. } => {
                         global_data.visual_mode = VisualMode::from_int(1);
                     },
@@ -83,4 +86,12 @@ pub fn set_mouse_grab(grabbed: bool, global_data: &mut GlobalData, display: &gli
     window.set_cursor_visible(!grabbed);
 
     global_data.mouse_grabbed = grabbed;
+}
+
+pub fn cycle_polygon_mode(global_data: &mut GlobalData) {
+    global_data.polygon_mode = match global_data.polygon_mode {
+        glium::PolygonMode::Fill => glium::PolygonMode::Line,
+        glium::PolygonMode::Line => glium::PolygonMode::Point,
+        glium::PolygonMode::Point => glium::PolygonMode::Fill
+    }
 }

@@ -6,10 +6,11 @@ pub struct GlobalData {
     pub resolution: UVec2,
     pub FPS: f32,
     pub uncapped_FPS: f32,//estimate of what the FPS would be without capping
-    pub options: Options,
     pub mouse_grabbed: bool,
     pub info_screen_visible: bool,
-    pub visual_mode: VisualMode
+    pub visual_mode: VisualMode,
+    pub polygon_mode: glium::draw_parameters::PolygonMode,//Fill, unless debugging
+    pub options: Options
 }
 impl GlobalData {
     pub fn new() -> Self {
@@ -22,6 +23,7 @@ impl GlobalData {
             mouse_grabbed: false,
             info_screen_visible: false,
             visual_mode: VisualMode::from_int(options.user.default_mode),
+            polygon_mode: glium::draw_parameters::PolygonMode::Fill,
             options: options
         }
     }

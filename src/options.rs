@@ -20,7 +20,8 @@ pub struct UserOptions {
 pub struct DevOptions {
     pub camera: CameraOptions,
     pub player: PlayerOptions,
-    pub light: LightOptions
+    pub light: LightOptions,
+    pub debug: DebugOptions
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -62,6 +63,12 @@ pub struct InfoScreenOptions {
     pub position: [f32; 2],
     pub relative_outline_size: f32,
     pub outline_quality: usize
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DebugOptions {
+    pub line_width: f32,
+    pub point_size: f32
 }
 
 impl Options {

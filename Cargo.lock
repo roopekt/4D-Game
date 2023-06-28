@@ -586,6 +586,7 @@ dependencies = [
 name = "game4D"
 version = "0.1.0"
 dependencies = [
+ "cc",
  "combinatorial",
  "const-str",
  "glam",

@@ -16,6 +16,9 @@ use spin_sleep::LoopHelper;
 
 fn main() {
     
+    #[cfg(windows)]
+    assert!(unsafe { request_for_best_gpu_made() == 1 });
+
     let mut global_data = global_data::GlobalData::new();
 
     let glutin_event_loop = glutin::event_loop::EventLoop::new();
@@ -81,3 +84,6 @@ fn get_display(event_loop: &glutin::event_loop::EventLoop<()>, global_data: &Glo
 
     display
 }
+
+#[cfg(windows)]
+extern "C" { pub fn request_for_best_gpu_made() -> i32; }

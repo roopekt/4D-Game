@@ -18,3 +18,6 @@ rust-fontconfig = "0.1.6"
 ouroboros = "0.15.6"
 spin_sleep = "1.1.1"
 combinatorial = "0.2.0"
+
+[build-dependencies]
+cc = "1.0"

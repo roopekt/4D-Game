@@ -1,7 +1,7 @@
 use super::{Mesh3D, Mesh4D, CpuVertex3D, CpuVertex4D};
 use glam::{Vec3, Vec4};
 use crate::errors::assert_equal;
-use super::index_of;
+use super::{index_of, combinations_csize};
 
 //yes, this is a very convoluted way to get a quad, but this is easier to generalize to 4D
 pub fn quad_3D() -> Mesh3D {
@@ -60,8 +60,9 @@ pub fn quad_3D() -> Mesh3D {
             .iter()
             .map(|&c| corner_signs_to_vertex(&c))
             .collect(),
-        indeces
-    }
+        indeces,
+        skeleton_indeces: Vec::new()
+    }.with_full_skeleton()
 }
 
 pub fn cube_4D() -> Mesh4D {
@@ -82,6 +83,23 @@ pub fn cube_4D() -> Mesh4D {
         }
     }
     assert_equal!(corners_of_central.len(), 4);
+
+    let mut skeleton_indeces: Vec<[usize; 2]> = Vec::new();
+    for edge in combinations_csize::<usize, 2>(0..corners.len()) {
+        let corner_A = corners[edge[0]];
+        let corner_B = corners[edge[1]];
+        let match_count = bool_array_match_count(&corner_A, &corner_B);
+
+        let is_outer_edge = match match_count {
+            2 => true,
+            0 | 1 => false,
+            _ => panic!("impossible match count {}", match_count)
+        };
+        if is_outer_edge {
+            skeleton_indeces.push(edge);
+        }
+    }
+    assert_equal!(skeleton_indeces.len(), 12);
 
     let mut indeces: Vec<[usize; 4]> = vec![corners_of_central.iter()
         .map(|corner| index_of(*corner, &corners))
@@ -124,7 +142,8 @@ pub fn cube_4D() -> Mesh4D {
             .iter()
             .map(|&c| corner_signs_to_vertex(&c))
             .collect(),
-        indeces
+        indeces,
+        skeleton_indeces
     }
 }
 

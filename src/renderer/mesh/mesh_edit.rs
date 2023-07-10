@@ -14,9 +14,15 @@ impl AddAssign for Mesh3D {
                 *i += index_ofset;
             }
         }
+        for prim in rhs.skeleton_indeces.iter_mut() {
+            for i in prim.iter_mut() {
+                *i += index_ofset;
+            }
+        }
 
         self.vertices.extend(rhs.vertices);
         self.indeces.extend(rhs.indeces);
+        self.skeleton_indeces.extend(rhs.skeleton_indeces);
     }
 }
 impl AddAssign for Mesh4D {
@@ -27,9 +33,15 @@ impl AddAssign for Mesh4D {
                 *i += index_ofset;
             }
         }
+        for prim in rhs.skeleton_indeces.iter_mut() {
+            for i in prim.iter_mut() {
+                *i += index_ofset;
+            }
+        }
 
         self.vertices.extend(rhs.vertices);
         self.indeces.extend(rhs.indeces);
+        self.skeleton_indeces.extend(rhs.skeleton_indeces);
     }
 }
 
@@ -62,7 +74,8 @@ impl Sum for Mesh4D {
 }
 
 impl Mesh3D {
-    pub fn subdivide(self) -> Self {
+    //doesn't subdivide the skeleton
+    pub fn subdivide_surface(self) -> Self {
         let mut vertices = self.vertices;
         let mut indeces = Vec::new();
         let mut edge_vertex_index_from_edge = HashMap::<EdgeIndeces, usize>::new();
@@ -106,12 +119,13 @@ impl Mesh3D {
 
         Self {
             vertices,
-            indeces
+            indeces,
+            skeleton_indeces: self.skeleton_indeces
         }
     }
 }
 impl Mesh4D {
-    pub fn subdivide(self) -> Self {
+    pub fn subdivide_surface(self) -> Self {
         let mut vertices = self.vertices;
         let mut indeces = Vec::new();
         let mut edge_vertex_index_from_edge = HashMap::<EdgeIndeces, usize>::new();
@@ -177,7 +191,30 @@ impl Mesh4D {
 
         Self {
             vertices,
-            indeces
+            indeces,
+            skeleton_indeces: self.skeleton_indeces
         }
+    }
+}
+
+impl Mesh3D {
+    //a full skeleton contains every vertex
+    pub fn with_full_skeleton(mut self) -> Self {
+        self.skeleton_indeces = (0..self.vertices.len())
+            .map(|i| [i])
+            .collect();
+        self
+    }
+}
+impl Mesh4D {
+    //a full skeleton contains every edge
+    pub fn with_full_skeleton(mut self) -> Self {
+        //collecting to a set removes duplicates
+        let edge_set: HashSet<[usize; 2]> = self.indeces.iter()
+            .map(|&primitive| combinations_csize::<usize, 2>(primitive))
+            .flatten()
+            .collect();
+        self.skeleton_indeces = edge_set.iter().copied().collect();
+        self
     }
 }

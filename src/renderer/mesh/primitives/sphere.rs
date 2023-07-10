@@ -12,11 +12,12 @@ pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
     let indeces = combinations_csize(0..vertices.len()).collect();//all possible triangles
     let mut mesh = Mesh3D {
         vertices: vertices,
-        indeces: indeces
+        indeces: indeces,
+        skeleton_indeces: Vec::new()
     };
 
     for _ in 0..subdivisions {
-        mesh = mesh.subdivide();
+        mesh = mesh.subdivide_surface();
 
         //project onto the unit sphere
         for vertex in mesh.vertices.iter_mut() {
@@ -24,7 +25,7 @@ pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
         }
     };
 
-    mesh
+    mesh.with_full_skeleton()
 }
 pub fn sphere_4D(subdivisions: usize) -> Mesh4D {
     let vertices: Vec<CpuVertex4D> = get_low_poly_sphere_vertices_general_dimension(4)
@@ -34,11 +35,12 @@ pub fn sphere_4D(subdivisions: usize) -> Mesh4D {
     let indeces = combinations_csize(0..vertices.len()).collect();//all possible tetrahedra
     let mut mesh = Mesh4D {
         vertices: vertices,
-        indeces: indeces
+        indeces: indeces,
+        skeleton_indeces: Vec::new()
     };
 
     for _ in 0..subdivisions {
-        mesh = mesh.subdivide();
+        mesh = mesh.subdivide_surface();
 
         //project onto the unit sphere
         for vertex in mesh.vertices.iter_mut() {
@@ -46,7 +48,7 @@ pub fn sphere_4D(subdivisions: usize) -> Mesh4D {
         }
     };
 
-    mesh
+    mesh.with_full_skeleton()
 }
 
 //tetrahedron in 3D, 5-cell in 4D

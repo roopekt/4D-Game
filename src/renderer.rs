@@ -2,7 +2,7 @@ pub mod renderable_object;
 pub mod mesh;
 pub mod shading;
 pub mod text_rendering;
-mod alternate_target;
+mod render_target;
 mod world_rendering;
 
 use crate::game::world::Multiverse;
@@ -12,21 +12,23 @@ use shading::abstract_material::Material;
 use shading::materials;
 use shading::shaders::ShaderProgramContainer;
 use crate::info_screen::render_info_screen;
-use alternate_target::AlternateTarget;
+use render_target::RenderTarget;
 
 pub struct Renderer<'a> {
     shader_programs: ShaderProgramContainer,
     text_renderer: text_rendering::TextRenderer<'a>,
-    alternate_target: AlternateTarget,
-    VERTICAL_LINE: mesh::StaticUploadedMeshSimple
+    alternate_target: RenderTarget,
+    VERTICAL_LINE: mesh::StaticUploadedMeshSimple,
+    BLIT_QUAD: mesh::StaticUploadedMeshSimple
 }
 impl<'a> Renderer<'a> {
     pub fn new(display: &glium::Display, global_data: &GlobalData) -> Self {
         Self {
             shader_programs: ShaderProgramContainer::new(display),
             text_renderer: text_rendering::TextRenderer::new(display, global_data),
-            alternate_target: AlternateTarget::build(display),
-            VERTICAL_LINE: mesh::primitives::vertical_line().upload_static(display)
+            alternate_target: RenderTarget::build(display),
+            VERTICAL_LINE: mesh::primitives::vertical_line().upload_static(display),
+            BLIT_QUAD: mesh::primitives::blit_quad().upload_static(display)
         }
     }
 

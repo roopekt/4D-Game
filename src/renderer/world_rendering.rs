@@ -55,13 +55,14 @@ impl Renderer<'_> {
             render_objects_simple_visual_mode_3D(world, target, &object_draw_context, &self.shader_programs);
 
             object_draw_context.visual_mode = VisualMode::Degenerate3D;
-            self.alternate_target.setup_for_rendering(display);
+            self.alternate_target.setup_for_rendering(display, (0.0, 0.0, 1.0, 1.0));
             self.alternate_target.with_frame_buffer_mut(|frame_buffer|
                 render_objects_simple_visual_mode_3D(world, frame_buffer, &object_draw_context, &self.shader_programs)
             );
 
-            self.alternate_target.blend_onto(target, &self.shader_programs,
-                global_data.options.user.graphics.combined_render_degenerate_strength);
+            self.alternate_target.blend_onto(target,
+                global_data.options.user.graphics.combined_render_degenerate_strength,
+                &self.shader_programs, &self.BLIT_QUAD);
             self.draw_vertical_line(target);
         }
         else {

@@ -47,10 +47,8 @@ pub(crate) use implement_material_draw;
 pub(crate) use any_uniforms_storage;
 
 pub trait Material {
-    const NORMAL3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
-    const DEGENERATE3D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
-    const DEGENERATE4D_PROGRAM_DESCRIPTOR: ProgramDescriptor;
-    const PROGRAM_IDS: ShaderProgramIdContainer;
+    const PROGRAM_DESCRIPTORS: ProgramDescriptorGroup;
+    const PROGRAM_IDS: ShaderProgramIdGroup;
 
     fn draw_mesh_3D<'a, 'b, T, V, I>(
         &self,
@@ -78,10 +76,27 @@ pub trait Material {
 }
 
 pub type ShaderProgramId = usize;
-pub struct ShaderProgramIdContainer {
+pub struct ShaderProgramIdGroup {
     pub normal_3D: ShaderProgramId,
     pub degenerate_3D: ShaderProgramId,
     pub degenerate_4D: ShaderProgramId
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct ProgramDescriptorGroup {
+    pub normal_3D: ProgramDescriptor,
+    pub degenerate_3D: ProgramDescriptor,
+    pub degenerate_4D: ProgramDescriptor
+}
+impl ProgramDescriptorGroup {
+    /// assigns same descriptor to all fields
+    pub const fn new_trivial(descriptor: ProgramDescriptor) -> Self {
+        Self {
+            normal_3D: descriptor,
+            degenerate_3D: descriptor,
+            degenerate_4D: descriptor
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]

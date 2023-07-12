@@ -1,6 +1,7 @@
 {
     "camera": {
         "fov": 60,
+        "degenerate_fov_4D": 90,
         "near_plane": 0.1,
         "far_plane": 500
     },

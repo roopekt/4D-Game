@@ -35,6 +35,7 @@ pub struct UserGraphicsOptions {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CameraOptions {
     pub fov: f32,
+    pub degenerate_fov_4D: f32,
     pub near_plane: f32,
     pub far_plane: f32
 }

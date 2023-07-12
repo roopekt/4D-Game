@@ -159,16 +159,17 @@ pub fn player_projection_matrix_3D(global_data: &GlobalData) -> AffineTransform3
 //affine transformation, so doesn't give depth divider
 pub fn player_projection_matrix_4D(global_data: &GlobalData) -> AffineTransform4D {
     let z = 1.0 / f32::tan(global_data.options.dev.camera.fov.to_radians() * 0.5);
+    let z_deg = 1.0 / f32::tan(global_data.options.dev.camera.degenerate_fov_4D.to_radians() * 0.5);
     let aspect = global_data.aspect_ratio();
     let near = global_data.options.dev.camera.near_plane;
     let far = global_data.options.dev.camera.far_plane;
 
     AffineTransform4D {
         linear_transform: matrix4x4![
-            1.0, 0.0,      0.0, 0.0,
-            0.0, z/aspect, 0.0, 0.0,
-            0.0, 0.0,      z,   0.0,
-            0.0, 0.0,      0.0, (near+far)/(far-near)
+            z_deg, 0.0,      0.0, 0.0,
+            0.0,   z/aspect, 0.0, 0.0,
+            0.0,   0.0,      z,   0.0,
+            0.0,   0.0,      0.0, (near+far)/(far-near)
         ],
         translation: Vec4::new(0.0, 0.0, 0.0, -(2.0*near*far)/(far-near))
     }

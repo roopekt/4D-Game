@@ -12,6 +12,8 @@ in GS_IN {
 out FRAG_IN {
     vec4 world_position;
     vec4 world_normal;
+    vec4 clip_position;
+    float depth;
 } v_out;
 
 struct Vertex {
@@ -95,16 +97,22 @@ void emit_triangles(Vertex[6] intersections, int intersection_count) {
     gl_Position = vec4(intersections[0].clip_pos.yzw, intersections[0].depth);
     v_out.world_position = intersections[0].world_pos;
     v_out.world_normal = intersections[0].world_normal;
+    v_out.clip_position = intersections[0].clip_pos;
+    v_out.depth = intersections[0].depth;
     EmitVertex();
 
     gl_Position = vec4(intersections[1].clip_pos.yzw, intersections[1].depth);
     v_out.world_position = intersections[1].world_pos;
     v_out.world_normal = intersections[1].world_normal;
+    v_out.clip_position = intersections[1].clip_pos;
+    v_out.depth = intersections[1].depth;
     EmitVertex();
 
     gl_Position = vec4(intersections[2].clip_pos.yzw, intersections[2].depth);
     v_out.world_position = intersections[2].world_pos;
     v_out.world_normal = intersections[2].world_normal;
+    v_out.clip_position = intersections[2].clip_pos;
+    v_out.depth = intersections[2].depth;
     EmitVertex();
 
     if (is_quadrilateral) {
@@ -130,6 +138,8 @@ void emit_triangles(Vertex[6] intersections, int intersection_count) {
         gl_Position = vec4(intersections[3].clip_pos.yzw, intersections[3].depth);
         v_out.world_position = intersections[3].world_pos;
         v_out.world_normal = intersections[3].world_normal;
+        v_out.clip_position = intersections[3].clip_pos;
+        v_out.depth = intersections[3].depth;
         EmitVertex();
     }
 

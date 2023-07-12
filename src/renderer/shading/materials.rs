@@ -14,17 +14,17 @@ pub struct SingleColorMaterial {
 impl Material for SingleColorMaterial {
     const PROGRAM_DESCRIPTORS: ProgramDescriptorGroup = ProgramDescriptorGroup {
         normal_3D: ProgramDescriptor::new(
-            "3D/default.vert", "3D/single_color.frag"),
+            "3D/pre_fragment.vert", "3D/single_color.frag"),
         normal_3D_skeleton: ProgramDescriptor::new(
-            "3D/default.vert", "3D/single_color_skeleton.frag"),
+            "3D/pre_fragment.vert", "3D/single_color_skeleton.frag"),
         degenerate_3D: ProgramDescriptor::new_with_geometry(
-            "3D/default_pre_geometry.vert", "3D/single_color.frag", "3D/sliced.geom"),
+            "3D/pre_geometry.vert", "3D/single_color.frag", "3D/sliced.geom"),
         degenerate_3D_skeleton: ProgramDescriptor::new_with_geometry(
-            "3D/default_pre_geometry.vert", "3D/single_color_skeleton.frag", "3D/skeleton.geom"),
+            "3D/pre_geometry.vert", "3D/single_color_skeleton.frag", "3D/skeleton.geom"),
         degenerate_4D: ProgramDescriptor::new_with_geometry(
-            "4D/default_sliced.vert", "4D/single_color.frag", "4D/sliced.geom"),
-        degenerate_4D_skeleton: ProgramDescriptor::new_with_geometry(
-            "4D/default_sliced.vert", "4D/single_color.frag", "4D/sliced.geom")
+            "4D/pre_geometry.vert", "4D/single_color.frag", "4D/sliced.geom"),
+        degenerate_4D_skeleton: ProgramDescriptor::new(
+            "4D/pre_fragment.vert", "4D/single_color_skeleton.frag")
     };
     
     const PROGRAM_IDS: ShaderProgramIdGroup = get_program_id_container::<Self>();

@@ -40,6 +40,17 @@ impl Renderer<'_> {
             .. Default::default()
         };
         let skeleton_glium_draw_parameters = glium::DrawParameters {
+            blend: glium::Blend {
+                color: glium::BlendingFunction::Addition {
+                    source: glium::LinearBlendingFactor::SourceAlpha,
+                    destination: glium::LinearBlendingFactor::OneMinusSourceAlpha
+                },
+                alpha: glium::BlendingFunction::Addition {
+                    source: glium::LinearBlendingFactor::One,
+                    destination: glium::LinearBlendingFactor::One
+                },
+                ..Default::default()
+            },
             point_size: Some(global_data.options.user.graphics.skeleton_width),
             ..Default::default()
         };
@@ -70,7 +81,9 @@ impl Renderer<'_> {
                 self.skeleton_target.with_frame_buffer_mut(|skeleton_target|
                     render_objects_simple_visual_mode_3D(world, alternate_target, skeleton_target, &object_draw_context))
             );
-            self.skeleton_target.blit_onto_with_alpha(target, &self.shader_programs, &self.BLIT_QUAD);
+            if global_data.polygon_mode == PolygonMode::Fill {
+                self.skeleton_target.blit_onto_with_alpha(target, &self.shader_programs, &self.BLIT_QUAD);
+            }
 
             self.alternate_target.blend_onto(target,
                 global_data.options.user.graphics.combined_render_degenerate_strength,
@@ -94,7 +107,9 @@ impl Renderer<'_> {
             self.skeleton_target.with_frame_buffer_mut(|skeleton_target|
                 render_objects_simple_visual_mode_3D(world, target, skeleton_target, &object_draw_context)
             );
-            self.skeleton_target.blit_onto_with_alpha(target, &self.shader_programs, &self.BLIT_QUAD);
+            if global_data.polygon_mode == PolygonMode::Fill {
+                self.skeleton_target.blit_onto_with_alpha(target, &self.shader_programs, &self.BLIT_QUAD);
+            }
         }
     }
     pub fn render_objects_4D(
@@ -128,6 +143,18 @@ impl Renderer<'_> {
             .. Default::default()
         };
         let skeleton_glium_draw_parameters = glium::DrawParameters {
+            blend: glium::Blend {
+                color: glium::BlendingFunction::Addition {
+                    source: glium::LinearBlendingFactor::SourceAlpha,
+                    destination: glium::LinearBlendingFactor::OneMinusSourceAlpha
+                },
+                alpha: glium::BlendingFunction::Addition {
+                    source: glium::LinearBlendingFactor::One,
+                    destination: glium::LinearBlendingFactor::One
+                },
+                ..Default::default()
+            },
+            line_width: Some(global_data.options.user.graphics.skeleton_width),
             ..Default::default()
         };
 
@@ -146,7 +173,9 @@ impl Renderer<'_> {
         self.skeleton_target.with_frame_buffer_mut(|skeleton_target|
             render_objects_simple_visual_mode_4D(world, target, skeleton_target, &object_draw_context)
         );
-        self.skeleton_target.blit_onto_with_alpha(target, &self.shader_programs, &self.BLIT_QUAD);
+        if global_data.polygon_mode == PolygonMode::Fill {
+            self.skeleton_target.blit_onto_with_alpha(target, &self.shader_programs, &self.BLIT_QUAD);
+        }
     }
 }
 

@@ -141,16 +141,22 @@ void EmitUnchanged() {
     gl_Position = vec4(v_in[0].clip_position, v_in[0].depth);
     v_out.world_position = v_in[0].world_position;
     v_out.world_normal = v_in[0].world_normal;
+    v_out.clip_position = v_in[0].clip_position;
+    v_out.depth = v_in[0].depth;
     EmitVertex();
 
     gl_Position = vec4(v_in[1].clip_position, v_in[1].depth);
     v_out.world_position = v_in[1].world_position;
     v_out.world_normal = v_in[1].world_normal;
+    v_out.clip_position = v_in[0].clip_position;
+    v_out.depth = v_in[0].depth;
     EmitVertex();
 
     gl_Position = vec4(v_in[2].clip_position, v_in[2].depth);
     v_out.world_position = v_in[2].world_position;
     v_out.world_normal = v_in[2].world_normal;
+    v_out.clip_position = v_in[0].clip_position;
+    v_out.depth = v_in[0].depth;
     EmitVertex();
 
     EndPrimitive();

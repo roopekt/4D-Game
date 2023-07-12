@@ -79,8 +79,8 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
 
-    const CUBE_COUNT: usize = 7;
-    const SPHERE_COUNT: usize = 7;
+    const CUBE_COUNT: usize = 5;
+    const SPHERE_COUNT: usize = 5;
     const SPAWN_RADIUS: f32 = 7.0;
 
     //random cubes
@@ -143,8 +143,8 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
 
-    const TESSERACT_COUNT: usize = 70;
-    const SPHERE_COUNT: usize = 70;
+    const TESSERACT_COUNT: usize = 20;
+    const SPHERE_COUNT: usize = 20;
     const SPAWN_RADIUS: f32 = 7.0;
 
     //random tesseracts

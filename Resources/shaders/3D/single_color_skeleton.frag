@@ -11,8 +11,12 @@ in FRAG_IN {
 
 out vec4 frag_color;
 
+//@include 3D/lighting.glsl
+
 void main() {
+    vec3 lit_color = get_lit_color(albedo);
+
     vec4 color_at_frustum_border = v_in.clip_position.x > 0.0 ? vec4(1.0, 0.0, 0.0, 0.0) : vec4(0.0, 0.0, 1.0, 0.0);
     float t = abs(v_in.clip_position.x / v_in.depth);
-    frag_color = mix(vec4(albedo, 1.0), color_at_frustum_border, t);
+    frag_color = mix(vec4(lit_color, 1.0), color_at_frustum_border, t);
 }

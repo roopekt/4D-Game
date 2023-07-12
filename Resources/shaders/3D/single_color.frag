@@ -14,6 +14,8 @@ uniform vec3 albedo;
 in FRAG_IN {
     vec3 world_position;
     vec3 world_normal;
+    vec3 clip_position;
+    float depth;
 } v_in;
 
 out vec4 frag_color;

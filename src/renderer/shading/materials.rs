@@ -15,9 +15,15 @@ impl Material for SingleColorMaterial {
     const PROGRAM_DESCRIPTORS: ProgramDescriptorGroup = ProgramDescriptorGroup {
         normal_3D: ProgramDescriptor::new(
             "3D/default.vert", "3D/single_color.frag"),
+        normal_3D_skeleton: ProgramDescriptor::new(
+            "3D/default.vert", "3D/single_color_skeleton.frag"),
         degenerate_3D: ProgramDescriptor::new_with_geometry(
-            "3D/default_sliced.vert", "3D/single_color.frag", "3D/sliced.geom"),
+            "3D/default_pre_geometry.vert", "3D/single_color.frag", "3D/sliced.geom"),
+        degenerate_3D_skeleton: ProgramDescriptor::new_with_geometry(
+            "3D/default_pre_geometry.vert", "3D/single_color_skeleton.frag", "3D/skeleton.geom"),
         degenerate_4D: ProgramDescriptor::new_with_geometry(
+            "4D/default_sliced.vert", "4D/single_color.frag", "4D/sliced.geom"),
+        degenerate_4D_skeleton: ProgramDescriptor::new_with_geometry(
             "4D/default_sliced.vert", "4D/single_color.frag", "4D/sliced.geom")
     };
     
@@ -69,14 +75,17 @@ impl SingleColorScreenSpaceMaterial {
 }
 
 
-const PROGRAM_DESCRIPTORS_PER_GROUP: usize = 3;
+const PROGRAM_DESCRIPTORS_PER_GROUP: usize = 6;
 pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 3 * PROGRAM_DESCRIPTORS_PER_GROUP] = {
     let mut descriptors = [ProgramDescriptor::new("<null>", "<null>"); 3 * PROGRAM_DESCRIPTORS_PER_GROUP];
     let mut i = 0;
     while i < PROGRAM_DESCRIPTOR_GROUPS.len() {
         descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 0] = PROGRAM_DESCRIPTOR_GROUPS[i].normal_3D;
-        descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 1] = PROGRAM_DESCRIPTOR_GROUPS[i].degenerate_3D;
-        descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 2] = PROGRAM_DESCRIPTOR_GROUPS[i].degenerate_4D;
+        descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 1] = PROGRAM_DESCRIPTOR_GROUPS[i].normal_3D_skeleton;
+        descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 2] = PROGRAM_DESCRIPTOR_GROUPS[i].degenerate_3D;
+        descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 3] = PROGRAM_DESCRIPTOR_GROUPS[i].degenerate_3D_skeleton;
+        descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 4] = PROGRAM_DESCRIPTOR_GROUPS[i].degenerate_4D;
+        descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 5] = PROGRAM_DESCRIPTOR_GROUPS[i].degenerate_4D_skeleton;
         i += 1;
     }
     descriptors
@@ -84,9 +93,12 @@ pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 3 * PROGRAM_DESCRIPTORS_PER_G
 
 const fn get_program_id_container<M: Material>() -> ShaderProgramIdGroup {
     ShaderProgramIdGroup {
-        normal_3D:     get_program_id(M::PROGRAM_DESCRIPTORS.normal_3D),
-        degenerate_3D: get_program_id(M::PROGRAM_DESCRIPTORS.degenerate_3D),
-        degenerate_4D: get_program_id(M::PROGRAM_DESCRIPTORS.degenerate_4D)
+        normal_3D:              get_program_id(M::PROGRAM_DESCRIPTORS.normal_3D),
+        normal_3D_skeleton:     get_program_id(M::PROGRAM_DESCRIPTORS.normal_3D_skeleton),
+        degenerate_3D:          get_program_id(M::PROGRAM_DESCRIPTORS.degenerate_3D),
+        degenerate_3D_skeleton: get_program_id(M::PROGRAM_DESCRIPTORS.degenerate_3D_skeleton),
+        degenerate_4D:          get_program_id(M::PROGRAM_DESCRIPTORS.degenerate_4D),
+        degenerate_4D_skeleton: get_program_id(M::PROGRAM_DESCRIPTORS.degenerate_4D_skeleton)
     }
 }
 

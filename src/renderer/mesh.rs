@@ -50,7 +50,7 @@ impl Mesh3D {
         StaticUploadedMesh3D {
             vertices: get_gpu_vertices(display, &self.vertices),
             indeces: get_gpu_indeces(display, glium::index::PrimitiveType::TrianglesList, &self.indeces),
-            skeleton_indeces: get_gpu_indeces(display, glium::index::PrimitiveType::LinesList, &self.skeleton_indeces)
+            skeleton_indeces: get_gpu_indeces(display, glium::index::PrimitiveType::Points, &self.skeleton_indeces)
         }
     }
 

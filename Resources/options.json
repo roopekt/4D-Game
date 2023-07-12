@@ -2,7 +2,8 @@
     "graphics": {
         "default_resolution": [600, 400],
         "max_fps": 60,
-        "combined_render_degenerate_strength": 0.8
+        "combined_render_degenerate_strength": 0.8,
+        "skeleton_width": 2.0
     },
     "input": {
         "mouse_sensitivity": 0.01

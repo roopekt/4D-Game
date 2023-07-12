@@ -1,0 +1,18 @@
+#version 330 core
+
+uniform vec3 albedo;
+
+in FRAG_IN {
+    vec3 world_position;
+    vec3 world_normal;
+    vec3 clip_position;
+    float depth;
+} v_in;
+
+out vec4 frag_color;
+
+void main() {
+    vec4 color_at_frustum_border = v_in.clip_position.x > 0.0 ? vec4(1.0, 0.0, 0.0, 0.0) : vec4(0.0, 0.0, 1.0, 0.0);
+    float t = abs(v_in.clip_position.x / v_in.depth);
+    frag_color = mix(vec4(albedo, 1.0), color_at_frustum_border, t);
+}

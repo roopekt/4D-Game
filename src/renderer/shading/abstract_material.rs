@@ -76,25 +76,35 @@ pub trait Material {
 }
 
 pub type ShaderProgramId = usize;
+#[derive(Debug, Copy, Clone)]
 pub struct ShaderProgramIdGroup {
     pub normal_3D: ShaderProgramId,
+    pub normal_3D_skeleton: ShaderProgramId,
     pub degenerate_3D: ShaderProgramId,
-    pub degenerate_4D: ShaderProgramId
+    pub degenerate_3D_skeleton: ShaderProgramId,
+    pub degenerate_4D: ShaderProgramId,
+    pub degenerate_4D_skeleton: ShaderProgramId
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProgramDescriptorGroup {
     pub normal_3D: ProgramDescriptor,
+    pub normal_3D_skeleton: ProgramDescriptor,
     pub degenerate_3D: ProgramDescriptor,
-    pub degenerate_4D: ProgramDescriptor
+    pub degenerate_3D_skeleton: ProgramDescriptor,
+    pub degenerate_4D: ProgramDescriptor,
+    pub degenerate_4D_skeleton: ProgramDescriptor
 }
 impl ProgramDescriptorGroup {
     /// assigns same descriptor to all fields
     pub const fn new_trivial(descriptor: ProgramDescriptor) -> Self {
         Self {
             normal_3D: descriptor,
+            normal_3D_skeleton: descriptor,
             degenerate_3D: descriptor,
-            degenerate_4D: descriptor
+            degenerate_3D_skeleton: descriptor,
+            degenerate_4D: descriptor,
+            degenerate_4D_skeleton: descriptor
         }
     }
 }

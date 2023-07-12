@@ -20,10 +20,10 @@ pub struct RenderableObject4D<M: Material> {
 }
 
 impl<M: Material> RenderableObject3D<M> {
-    pub fn render<T: glium::Surface>(&self, target: &mut T, params: &ObjectDrawContext3D, shaders: &ShaderProgramContainer) {
+    pub fn render<A: glium::Surface, B: glium::Surface>(&self, targets: &mut ObjectDrawTargets<'_, A, B>, context: &ObjectDrawContext3D) {
         let to_world_transform = self.transform;
-        let to_view_transform = params.inverse_camera_trs_matrix * to_world_transform;
-        let to_clip_transform = params.projection_matrix * to_view_transform;
+        let to_view_transform = context.inverse_camera_trs_matrix * to_world_transform;
+        let to_clip_transform = context.projection_matrix * to_view_transform;
         let normal_matrix = to_world_transform.point_transform_to_normal_transform();
         
         let vertex_block = GlobalVertexBlock3D {
@@ -32,32 +32,45 @@ impl<M: Material> RenderableObject3D<M> {
             to_clip_transform: to_clip_transform.std140(),
             normal_matrix: normal_matrix.std140()
         };
-        let vertex_block_buffer = vertex_block.get_glium_uniform_buffer(params.display);
+        let vertex_block_buffer = vertex_block.get_glium_uniform_buffer(context.display);
 
-        let program_id = match params.visual_mode {
-            VisualMode::Normal3D => M::PROGRAM_IDS.normal_3D,
-            VisualMode::Degenerate3D => M::PROGRAM_IDS.degenerate_3D,
-            VisualMode::Combined3D => panic!("Cannot handle {:?}. Please render in separate passes.", params.visual_mode),
-            VisualMode::Degenerate4D => panic!("Cannot handle {:?}. Please use the 4D pipeline. ", params.visual_mode)
+        let (surface_program_id, skeleton_program_id) = match context.visual_mode {
+            VisualMode::Normal3D => (M::PROGRAM_IDS.normal_3D, M::PROGRAM_IDS.normal_3D_skeleton),
+            VisualMode::Degenerate3D => (M::PROGRAM_IDS.degenerate_3D, M::PROGRAM_IDS.degenerate_3D_skeleton),
+            VisualMode::Combined3D => panic!("Cannot handle {:?}. Please render in separate passes.", context.visual_mode),
+            VisualMode::Degenerate4D => panic!("Cannot handle {:?}. Please use the 4D pipeline. ", context.visual_mode)
         };
-        let program = shaders.get_program(program_id);
+        let surface_program  = context.shaders.get_program(surface_program_id);
+        let skeleton_program = context.shaders.get_program(skeleton_program_id);
 
+        //surface
         self.material.draw_mesh_3D(
-            target,
+            targets.surface_target,
             &self.mesh.vertices,
             &self.mesh.indeces,
-            program,
+            surface_program,
             &vertex_block_buffer,
-            &params.fragment_block_buffer,
-            &params.glium_draw_parameters
+            &context.fragment_block_buffer,
+            &context.surface_glium_draw_parameters
+        ).unwrap();
+
+        //skeleton
+        self.material.draw_mesh_3D(
+            targets.skeleton_target,
+            &self.mesh.vertices,
+            &self.mesh.skeleton_indeces,
+            skeleton_program,
+            &vertex_block_buffer,
+            &context.fragment_block_buffer,
+            &context.skeleton_glium_draw_parameters
         ).unwrap();
     }
 }
 impl<M: Material> RenderableObject4D<M> {
-    pub fn render<T: glium::Surface>(&self, target: &mut T, params: &ObjectDrawContext4D, shaders: &ShaderProgramContainer) {
+    pub fn render<A: glium::Surface, B: glium::Surface>(&self, targets: &mut ObjectDrawTargets<'_, A, B>, context: &ObjectDrawContext4D) {
             let to_world_transform = self.transform;
-            let to_view_transform = params.inverse_camera_trs_matrix * to_world_transform;
-            let to_clip_transform = params.projection_matrix * to_view_transform;
+            let to_view_transform = context.inverse_camera_trs_matrix * to_world_transform;
+            let to_clip_transform = context.projection_matrix * to_view_transform;
             let normal_matrix = to_world_transform.point_transform_to_normal_transform();
             
             let vertex_block = GlobalVertexBlock4D {
@@ -66,36 +79,58 @@ impl<M: Material> RenderableObject4D<M> {
                 to_clip_transform: to_clip_transform.std140(),
                 normal_matrix: normal_matrix.std140()
             };
-            let vertex_block_buffer = vertex_block.get_glium_uniform_buffer(params.display);
+            let vertex_block_buffer = vertex_block.get_glium_uniform_buffer(context.display);
 
-            let program = shaders.get_program(M::PROGRAM_IDS.degenerate_4D);
+            let surface_program = context.shaders.get_program(M::PROGRAM_IDS.degenerate_4D);
+            let skeleton_program = context.shaders.get_program(M::PROGRAM_IDS.degenerate_4D_skeleton);
 
+            //surface
             self.material.draw_mesh_4D(
-                target,
+                targets.surface_target,
                 &self.mesh.vertices,
                 &self.mesh.indeces,
-                program,
+                surface_program,
                 &vertex_block_buffer,
-                &params.fragment_block_buffer,
-                &params.glium_draw_parameters
+                &context.fragment_block_buffer,
+                &context.surface_glium_draw_parameters
+            ).unwrap();
+
+            //skeleton
+            self.material.draw_mesh_4D(
+                targets.skeleton_target,
+                &self.mesh.vertices,
+                &self.mesh.skeleton_indeces,
+                skeleton_program,
+                &vertex_block_buffer,
+                &context.fragment_block_buffer,
+                &context.skeleton_glium_draw_parameters
             ).unwrap();
     }
 }
 
 pub struct ObjectDrawContext3D<'a> {
     pub display: &'a glium::Display,
+    pub shaders: &'a ShaderProgramContainer,
     pub inverse_camera_trs_matrix: AffineTransform3D,
     pub projection_matrix: AffineTransform3D,
     pub fragment_block_buffer: glium::uniforms::UniformBuffer<GlobalFragmentBlock3D>,
-    pub glium_draw_parameters: glium::DrawParameters<'a>,
+    pub surface_glium_draw_parameters: glium::DrawParameters<'a>,
+    pub skeleton_glium_draw_parameters: glium::DrawParameters<'a>,
     pub visual_mode: VisualMode,
     pub _global_data: &'a GlobalData
 }
 pub struct ObjectDrawContext4D<'a> {
     pub display: &'a glium::Display,
+    pub shaders: &'a ShaderProgramContainer,
     pub inverse_camera_trs_matrix: AffineTransform4D,
     pub projection_matrix: AffineTransform4D,
     pub fragment_block_buffer: glium::uniforms::UniformBuffer<GlobalFragmentBlock4D>,
-    pub glium_draw_parameters: glium::DrawParameters<'a>,
+    pub surface_glium_draw_parameters: glium::DrawParameters<'a>,
+    pub skeleton_glium_draw_parameters: glium::DrawParameters<'a>,
     pub _global_data: &'a GlobalData
+}
+
+pub struct ObjectDrawTargets<'a, A: glium::Surface, B: glium::Surface> {
+    pub surface_target:  &'a mut A,
+    pub skeleton_target: &'a mut B
 }

@@ -28,7 +28,8 @@ pub struct DevOptions {
 pub struct UserGraphicsOptions {
     pub default_resolution: [u32; 2],
     pub max_fps: f32,
-    pub combined_render_degenerate_strength: f32
+    pub combined_render_degenerate_strength: f32,
+    pub skeleton_width: f32
 }
 
 #[derive(Serialize, Deserialize, Debug)]

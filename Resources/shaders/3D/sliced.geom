@@ -12,6 +12,8 @@ in GS_IN {
 out FRAG_IN {
     vec3 world_position;
     vec3 world_normal;
+    vec3 clip_position;
+    float depth;
 } v_out;
 
 struct Vertex {
@@ -91,6 +93,8 @@ void emit_quad(Line line) {
     );
     v_out.world_position = line.A.world_pos;
     v_out.world_normal = line.A.world_normal;
+    v_out.clip_position = line.A.clip_pos;
+    v_out.depth = line.A.depth;
     EmitVertex();
 
     gl_Position = vec4(
@@ -101,6 +105,8 @@ void emit_quad(Line line) {
     );
     v_out.world_position = line.A.world_pos;
     v_out.world_normal = line.A.world_normal;
+    v_out.clip_position = line.A.clip_pos;
+    v_out.depth = line.A.depth;
     EmitVertex();
 
     gl_Position = vec4(
@@ -111,6 +117,8 @@ void emit_quad(Line line) {
     );
     v_out.world_position = line.B.world_pos;
     v_out.world_normal = line.B.world_normal;
+    v_out.clip_position = line.B.clip_pos;
+    v_out.depth = line.B.depth;
     EmitVertex();
 
     gl_Position = vec4(
@@ -121,6 +129,8 @@ void emit_quad(Line line) {
     );
     v_out.world_position = line.B.world_pos;
     v_out.world_normal = line.B.world_normal;
+    v_out.clip_position = line.B.clip_pos;
+    v_out.depth = line.B.depth;
     EmitVertex();
 
     EndPrimitive();

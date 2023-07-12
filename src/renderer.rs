@@ -18,6 +18,7 @@ pub struct Renderer<'a> {
     shader_programs: ShaderProgramContainer,
     text_renderer: text_rendering::TextRenderer<'a>,
     alternate_target: RenderTarget,
+    skeleton_target: RenderTarget,
     VERTICAL_LINE: mesh::StaticUploadedMeshSimple,
     BLIT_QUAD: mesh::StaticUploadedMeshSimple
 }
@@ -27,6 +28,7 @@ impl<'a> Renderer<'a> {
             shader_programs: ShaderProgramContainer::new(display),
             text_renderer: text_rendering::TextRenderer::new(display, global_data),
             alternate_target: RenderTarget::build(display),
+            skeleton_target: RenderTarget::build(display),
             VERTICAL_LINE: mesh::primitives::vertical_line().upload_static(display),
             BLIT_QUAD: mesh::primitives::blit_quad().upload_static(display)
         }

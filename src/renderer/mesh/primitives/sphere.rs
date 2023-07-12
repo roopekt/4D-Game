@@ -3,7 +3,18 @@ use glam::{Vec4, Vec4Swizzles};
 use crate::errors::assert_equal;
 use super::combinations_csize;
 
-pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
+pub fn sphere_3D(surface_subdivisions: usize, skeleton_subdivisions: usize) -> Mesh3D {
+    let mut mesh = sphere_3D_no_skeleton(surface_subdivisions);
+    mesh.skeleton_indeces = sphere_3D_no_skeleton(skeleton_subdivisions).with_full_skeleton().skeleton_indeces;
+    mesh
+}
+pub fn sphere_4D(surface_subdivisions: usize, skeleton_subdivisions: usize) -> Mesh4D {
+    let mut mesh = sphere_4D_no_skeleton(surface_subdivisions);
+    mesh.skeleton_indeces = sphere_4D_no_skeleton(skeleton_subdivisions).with_full_skeleton().skeleton_indeces;
+    mesh
+}
+
+fn sphere_3D_no_skeleton(subdivisions: usize) -> Mesh3D {
     let vertices: Vec<CpuVertex3D> = get_low_poly_sphere_vertices_general_dimension(3)
         .iter()
         .map(|&v| v.xyz())
@@ -25,9 +36,9 @@ pub fn sphere_3D(subdivisions: usize) -> Mesh3D {
         }
     };
 
-    mesh.with_full_skeleton()
+    mesh
 }
-pub fn sphere_4D(subdivisions: usize) -> Mesh4D {
+fn sphere_4D_no_skeleton(subdivisions: usize) -> Mesh4D {
     let vertices: Vec<CpuVertex4D> = get_low_poly_sphere_vertices_general_dimension(4)
         .iter()
         .map(|&v| CpuVertex4D { position: v, normal: v })
@@ -48,7 +59,7 @@ pub fn sphere_4D(subdivisions: usize) -> Mesh4D {
         }
     };
 
-    mesh.with_full_skeleton()
+    mesh
 }
 
 //tetrahedron in 3D, 5-cell in 4D

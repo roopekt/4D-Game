@@ -98,7 +98,7 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
     }
 
     //random spheres
-    let sphere = mesh::primitives::sphere_3D(4);
+    let sphere = mesh::primitives::sphere_3D(4, 1);
     for _ in 0..SPHERE_COUNT {
         let position = Vec3::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
         let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));
@@ -162,7 +162,7 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
     }
 
     //random spheres
-    let sphere = mesh::primitives::sphere_4D(4);
+    let sphere = mesh::primitives::sphere_4D(4, 1);
     for _ in 0..SPHERE_COUNT {
         let position = Vec4::new(rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS, 0.3, rng.gen_range(-1.0..1.0) * SPAWN_RADIUS);
         let color = Vec3::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0));

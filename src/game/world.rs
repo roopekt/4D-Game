@@ -4,7 +4,7 @@ use crate::renderer::mesh;
 use std::time::Instant;
 use glam::{Mat3, Vec3, Mat4, Vec4};
 use std::vec::Vec;
-use super::transform::{Transform3D, Transform4D, matrix3x3, matrix4x4, rotation};
+use super::transform::{Transform3D, Transform4D, rotation, switch_matrix3_columns, switch_matrix4_columns};
 use crate::renderer::renderable_object::{RenderableObject3D, RenderableObject4D};
 use crate::renderer::shading::materials;
 use rand::{rngs::SmallRng, SeedableRng, Rng};
@@ -57,11 +57,7 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
     objects.push(RenderableObject3D {
         transform: Transform3D {
             scale: Vec3::splat(100.0),
-            orientation: matrix3x3![
-                1.0, 0.0, 0.0,
-                0.0, 0.0, 1.0,
-                0.0, 1.0, 0.0
-            ],
+            orientation: switch_matrix3_columns(Mat3::IDENTITY, 1, 2),
             ..Default::default()
         }.into(),
         mesh: mesh::primitives::quad_3D().upload_static(display),
@@ -120,12 +116,7 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
     objects.push(RenderableObject4D {
         transform: Transform4D {
             scale: Vec4::splat(100.0),
-            orientation: matrix4x4![
-                1.0, 0.0, 0.0, 0.0,
-                0.0, 1.0, 0.0, 0.0,
-                0.0, 0.0, 0.0, 1.0,
-                0.0, 0.0, 1.0, 0.0
-            ],
+            orientation: switch_matrix4_columns(Mat4::IDENTITY, 2, 3),
             ..Default::default()
         }.into(),
         mesh: mesh::primitives::cube_4D().upload_static(display),

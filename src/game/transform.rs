@@ -102,3 +102,12 @@ macro_rules! matrix4x4 {
     };
 }
 pub(crate) use {matrix3x3, matrix4x4};
+
+pub fn switch_matrix3_columns(mut matrix: Mat3, index_A: usize, index_B: usize) -> Mat3 {
+    (*matrix.col_mut(index_A), *matrix.col_mut(index_B)) = (matrix.col(index_B), matrix.col(index_A));
+    matrix
+}
+pub fn switch_matrix4_columns(mut matrix: Mat4, index_A: usize, index_B: usize) -> Mat4 {
+    (*matrix.col_mut(index_A), *matrix.col_mut(index_B)) = (matrix.col(index_B), matrix.col(index_A));
+    matrix
+}

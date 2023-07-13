@@ -15,8 +15,9 @@ pub fn render_info_screen(
     global_data: &GlobalData)
 {
     let resolution = CustomFormatted(global_data.resolution);
-    let FPS = global_data.FPS;
-    let uncapped_FPS = global_data.uncapped_FPS;
+    let capped_FPS = global_data.frame_timings.capped_fps;
+    let uncapped_FPS = global_data.frame_timings.uncapped_fps;
+    let uncapped_ms_per_frame = global_data.frame_timings.uncapped_milliseconds_per_frame;
     let visual_mode = global_data.visual_mode.to_string();
     let camera_position_3D = CustomFormatted(multiverse.world_3D.player.get_camera_world_position());
     let camera_position_4D = CustomFormatted(multiverse.world_4D.player.get_camera_world_position());
@@ -25,7 +26,7 @@ pub fn render_info_screen(
 
     let text = format!("\
 Resolution: {resolution}
-FPS: {FPS:.1}, uncapped {uncapped_FPS:.1}
+FPS: {capped_FPS:.1}, uncapped 1 / {uncapped_ms_per_frame:.2} ms = {uncapped_FPS:.1}
 Mode: {visual_mode}
 
 3D:

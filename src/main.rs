@@ -7,12 +7,9 @@ pub mod game;
 pub mod renderer;
 pub mod info_screen;
 pub mod errors;
+pub mod clock;
 
 use glium::glutin;
-use global_data::GlobalData;
-use renderer::Renderer;
-use std::time::Instant;
-use spin_sleep::LoopHelper;
 
 fn main() {
     assert_request_for_best_gpu_made_windows();
@@ -23,42 +20,25 @@ fn main() {
     let display = get_display(&glutin_event_loop, &global_data);
     
     let mut input_handler = events::input::InputHandler::new();
-    let mut renderer = Renderer::new(&display, &global_data);
+    let mut renderer = renderer::Renderer::new(&display, &global_data);
     let mut multiverse = game::world::Multiverse::new(&global_data, &display);
+    let mut clock = clock::MainLoopClock::new();
 
     events::set_mouse_grab(true, &mut global_data, &display);
-
-    let mut frame_start_instant = Instant::now();
-
-    let mut max_FPS = global_data.options.user.graphics.max_fps;
-    let mut clock = LoopHelper::builder()
-        .report_interval_s(0.5)
-        .build_with_target_rate(max_FPS);
 
     glutin_event_loop.run(move |event, _, control_flow| {
         match event {
             glutin::event::Event::MainEventsCleared =>
             {
-                //the end measurement is here so that event handling gets measured as well
-                let frame_end_instant = Instant::now();
-                global_data.uncapped_FPS = 1.0 / (frame_end_instant - frame_start_instant).as_secs_f32();
-
-                clock.loop_sleep();
-
-                frame_start_instant = Instant::now();
-                clock.loop_start();
-                let correct_max_FPS = global_data.options.user.graphics.max_fps;
-                if max_FPS != correct_max_FPS {
-                    max_FPS = correct_max_FPS;
-                    clock.set_target_rate(max_FPS);
-                }
-                if let Some(FPS) = clock.report_rate() {
-                    global_data.FPS = FPS as f32;
-                }
-
                 game::update_game(&mut multiverse, &input_handler, &mut global_data);
                 renderer.render_frame(&display, &multiverse, &mut global_data);
                 input_handler.reset_deltas();
+
+                let is_end_of_measurement_interval = clock.tick(global_data.options.user.graphics.max_fps);
+                global_data.frame_timings = clock.average_frame_timgings();
+                if is_end_of_measurement_interval {
+                    display.gl_window().window().set_title(&format!("4D game | {:.2} ms/f", global_data.frame_timings.uncapped_milliseconds_per_frame));
+                }
             },
             other => {
                 events::handle_event(other, &mut input_handler, &mut global_data, &display);
@@ -71,7 +51,7 @@ fn main() {
     });
 }
 
-fn get_display(event_loop: &glutin::event_loop::EventLoop<()>, global_data: &GlobalData) -> glium::Display {
+fn get_display(event_loop: &glutin::event_loop::EventLoop<()>, global_data: &global_data::GlobalData) -> glium::Display {
     
     let wb = glutin::window::WindowBuilder::new()
         .with_inner_size(glutin::dpi::LogicalSize::new(global_data.resolution.x, global_data.resolution.y))
@@ -83,6 +63,7 @@ fn get_display(event_loop: &glutin::event_loop::EventLoop<()>, global_data: &Glo
     display
 }
 
+//download more GPU
 #[cfg(windows)]
 extern "C" {
     static NvOptimusEnablement: u32;

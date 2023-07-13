@@ -20,8 +20,8 @@ pub fn render_info_screen(
     let visual_mode = global_data.visual_mode.to_string();
     let camera_position_3D = CustomFormatted(multiverse.world_3D.player.get_camera_world_position());
     let camera_position_4D = CustomFormatted(multiverse.world_4D.player.get_camera_world_position());
-    let look_direction_3D = CustomFormatted(multiverse.world_3D.player.get_pretty_look_direction());
-    let look_direction_4D = multiverse.world_4D.player.tilt;
+    let look_direction_3D = CustomFormatted(multiverse.world_3D.player.get_pretty_camera_orientation());
+    let look_direction_4D = CustomFormatted(multiverse.world_4D.player.get_pretty_camera_orientation());
 
     let text = format!("\
 Resolution: {resolution}
@@ -34,7 +34,8 @@ Look direction: {look_direction_3D:.2}
 
 4D:
 Position: {camera_position_4D:.2}
-Tilt: {look_direction_4D:.2}");
+Look direction: {look_direction_4D:.2}
+");
 
     let font_size = global_data.options.user.info_screen.font_size;
     let screen_position = global_data.options.user.info_screen.position.as_vector();

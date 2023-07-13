@@ -15,9 +15,7 @@ use std::time::Instant;
 use spin_sleep::LoopHelper;
 
 fn main() {
-    
-    #[cfg(windows)]
-    assert!(unsafe { request_for_best_gpu_made() == 1 });
+    assert_request_for_best_gpu_made_windows();
 
     let mut global_data = global_data::GlobalData::new();
 
@@ -86,4 +84,14 @@ fn get_display(event_loop: &glutin::event_loop::EventLoop<()>, global_data: &Glo
 }
 
 #[cfg(windows)]
-extern "C" { pub fn request_for_best_gpu_made() -> i32; }
+extern "C" {
+    static NvOptimusEnablement: u32;
+    static AmdPowerXpressRequestHighPerformance: i32;
+}
+fn assert_request_for_best_gpu_made_windows() {
+    #[cfg(windows)]
+    unsafe {
+        assert_eq!(NvOptimusEnablement, 1);
+        assert_eq!(AmdPowerXpressRequestHighPerformance, 1);
+    }
+}

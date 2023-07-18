@@ -9,8 +9,8 @@
         "mouse_sensitivity": 0.01
     },
     "info_screen": {
-        "font_name": "Consolas",
-        "font_size": 14,
+        "font_name": "Source Code Pro",
+        "font_size": 16,
         "position": [5, 5],
         "relative_outline_size": 0.07,
         "outline_quality": 6

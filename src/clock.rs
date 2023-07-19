@@ -45,55 +45,6 @@ impl MainLoopClock {
         is_end_of_measurement_interval
     }
 
-    // pub fn start_frame(&mut self) {
-    //     self.current_frame_start_instant = Instant::now();
-
-    //     // assert!(!self.waiting_for_frame_end);
-    //     // self.waiting_for_frame_end = true;
-    // }
-
-    // pub fn end_frame(&mut self) {
-    //     let now = Instant::now();
-    //     let frame_duration = now - self.current_frame_start_instant;
-    //     self.current_measurement_interval_total_time += frame_duration;
-    //     self.current_measurement_interval_total_frames += 1;
-
-    //     // assert!(self.waiting_for_frame_end);
-    //     // self.waiting_for_frame_end = false;
-
-    //     if now - self.current_measurement_interval_start_instant > MEASUREMENT_INTERVAL_DURATION {
-    //         self.conclude_measurement_interval();
-    //     }
-    // }
-
-    // pub fn average_fps_capped(&self) -> f32 {
-    //     match self.reported_frame_time_capped {
-    //         Some(time) => 1.0 / time.as_secs_f32(),
-    //         None => f32::NAN
-    //     }
-    // }
-
-    // pub fn average_fps_uncapped(&self) -> f32 {
-    //     match self.reported_frame_time_uncapped {
-    //         Some(time) => 1.0 / time.as_secs_f32(),
-    //         None => f32::NAN
-    //     }
-    // }
-
-    // pub fn average_milli_seconds_per_frame_capped(&self) -> f32 {
-    //     match self.reported_frame_time_capped {
-    //         Some(time) => time.as_secs_f32() * 1000.0,
-    //         None => f32::NAN
-    //     }
-    // }
-
-    // pub fn average_milli_seconds_per_frame_uncapped(&self) -> f32 {
-    //     match self.reported_frame_time_uncapped {
-    //         Some(time) => time.as_secs_f32() * 1000.0,
-    //         None => f32::NAN
-    //     }
-    // }
-
     pub fn average_frame_timgings(&self) -> AverageFrameTimings {
         AverageFrameTimings {
             capped_fps: self.reported_frame_time_capped.map_or(f32::NAN, |t| 1.0 / t.as_secs_f32()),

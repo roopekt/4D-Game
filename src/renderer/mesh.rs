@@ -1,6 +1,7 @@
 pub mod primitives;
 pub mod vertex;
 mod mesh_edit;
+mod subdivide;
 
 use crate::game::transform::{AffineTransform3D, AffineTransform4D};
 use vertex::*;

@@ -8,7 +8,10 @@
             "program": "${workspaceRoot}/target/debug/game4D",
             "args": [],
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "Cargo Build"
+            "preLaunchTask": "Cargo Build",
+            "env": {
+                "RUST_BACKTRACE": "1"
+            }
         },
         {
             "name": "(Windows) Launch",

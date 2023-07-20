@@ -1,5 +1,6 @@
 pub mod primitives;
 pub mod vertex;
+pub mod isosurface;
 mod mesh_edit;
 mod subdivide;
 

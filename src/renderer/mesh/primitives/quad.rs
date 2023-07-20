@@ -1,10 +1,11 @@
 pub mod corner_signs;
 pub use corner_signs::*;
+use itertools::Itertools;
 
 use super::{Mesh3D, Mesh4D, CpuVertex3D, CpuVertex4D};
 use glam::{Vec3, Vec4};
 use crate::errors::assert_equal;
-use super::{index_of, combinations_csize};
+use super::{index_of, combinations_constsize};
 
 pub fn quad_3D() -> Mesh3D {
     let (vertices, indeces) = quad_3D_discrete_vertices();
@@ -40,7 +41,7 @@ pub fn quad_3D_from_discrete_quad(vertices: Vec<CornerSigns<2>>, indeces: Vec<[u
 }
 pub fn cube_4D_from_discrete_cube(vertices: Vec<CornerSigns<3>>, indeces: Vec<[usize; 4]>) -> Mesh4D {
     let mut skeleton_indeces: Vec<[usize; 2]> = Vec::new();
-    for edge in combinations_csize::<usize, 2>(0..vertices.len()) {
+    for edge in combinations_constsize::<2,_>(&(0..vertices.len()).collect_vec()) {
         let corner_A = vertices[edge[0]];
         let corner_B = vertices[edge[1]];
         let match_count = corner_A.match_count(&corner_B);

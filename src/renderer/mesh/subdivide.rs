@@ -1,6 +1,7 @@
 use crate::errors::assert_equal;
 use super::{Mesh3D, Mesh4D};
-use super::primitives::{combinations_csize, all_edges, EdgeIndeces};
+use super::primitives::{all_edges, EdgeIndeces};
+use crate::combinations::combinations_constsize;
 use super::vertex::{CpuVertex3D, CpuVertex4D};
 use std::collections::{HashMap, HashSet};
 
@@ -12,7 +13,7 @@ impl Mesh3D {
         let mut edge_vertex_index_from_edge = HashMap::<EdgeIndeces, usize>::new();
 
         for &triangle in &self.indeces {    
-            let primitive_edges: Vec<EdgeIndeces> = all_edges(triangle.clone()).collect();
+            let primitive_edges: Vec<EdgeIndeces> = all_edges(&triangle).collect();
             assert_equal!(primitive_edges.len(), 3);
 
             //new vertices and their indeces
@@ -62,7 +63,7 @@ impl Mesh4D {
         let mut edge_vertex_index_from_edge = HashMap::<EdgeIndeces, usize>::new();
 
         for &tetrahedron in &self.indeces {    
-            let primitive_edges: Vec<EdgeIndeces> = all_edges(tetrahedron.clone()).collect();
+            let primitive_edges: Vec<EdgeIndeces> = all_edges(&tetrahedron).collect();
             assert_equal!(primitive_edges.len(), 6);
 
             //new vertices and their indeces
@@ -105,15 +106,18 @@ impl Mesh4D {
                 *edge_vertex_index_from_edge.get(&EdgeIndeces::new(tetrahedron[0], tetrahedron[2])).unwrap(),
                 *edge_vertex_index_from_edge.get(&EdgeIndeces::new(tetrahedron[1], tetrahedron[3])).unwrap()
             );
-            let mut mid_octahedron_tetrahedralization_edges: HashSet<EdgeIndeces> = all_edges(mid_octahedron_indeces.clone()).collect();
+            let mut mid_octahedron_tetrahedralization_edges: HashSet<EdgeIndeces> = all_edges(&mid_octahedron_indeces).collect();
             mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_A);
             mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_B);
+            if mid_octahedron_tetrahedralization_edges.len() == 14 {
+                println!("shit");
+            }
             assert_equal!(mid_octahedron_tetrahedralization_edges.len(), 12 + 1);//should now have all outer edges, and one diagonal
 
             //add mid octahedron tetrahedra
-            let mid_octahedron_tetrahedra: Vec<[usize; 4]> = combinations_csize(mid_octahedron_indeces)
+            let mid_octahedron_tetrahedra: Vec<[usize; 4]> = combinations_constsize(&mid_octahedron_indeces)
                 .filter(|&tetrahedron|
-                    all_edges(tetrahedron)
+                    all_edges(&tetrahedron)
                     .all(|edge| mid_octahedron_tetrahedralization_edges.contains(&edge)))
                 .collect();
             assert_equal!(mid_octahedron_tetrahedra.len(), 4);

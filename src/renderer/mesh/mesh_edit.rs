@@ -1,7 +1,7 @@
 use std::ops::{Add, AddAssign};
 use std::iter::Sum;
 use super::{Mesh3D, Mesh4D};
-use super::primitives::combinations_csize;
+use crate::combinations::combinations_constsize_owned;
 use std::collections::HashSet;
 
 impl AddAssign for Mesh3D {
@@ -85,7 +85,7 @@ impl Mesh4D {
     pub fn with_full_skeleton(mut self) -> Self {
         //collecting to a set removes duplicates
         let edge_set: HashSet<[usize; 2]> = self.indeces.iter()
-            .map(|&primitive| combinations_csize::<usize, 2>(primitive))
+            .map(|&primitive| combinations_constsize_owned::<2,_,_>(primitive))
             .flatten()
             .collect();
         self.skeleton_indeces = edge_set.iter().copied().collect();

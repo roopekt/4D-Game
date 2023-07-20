@@ -1,7 +1,7 @@
 use super::{Mesh3D, CpuVertex3D, Mesh4D, CpuVertex4D};
 use glam::{Vec4, Vec4Swizzles};
 use crate::errors::assert_equal;
-use super::combinations_csize;
+use crate::combinations::combinations_constsize_range;
 
 pub fn sphere_3D(surface_subdivisions: usize, skeleton_subdivisions: usize) -> Mesh3D {
     let mut mesh = sphere_3D_no_skeleton(surface_subdivisions);
@@ -20,7 +20,7 @@ fn sphere_3D_no_skeleton(subdivisions: usize) -> Mesh3D {
         .map(|&v| v.xyz())
         .map(|v| CpuVertex3D { position: v, normal: v })
         .collect();
-    let indeces = combinations_csize(0..vertices.len()).collect();//all possible triangles
+    let indeces = combinations_constsize_range(0..vertices.len()).collect();//all possible triangles
     let mut mesh = Mesh3D {
         vertices: vertices,
         indeces: indeces,
@@ -43,7 +43,7 @@ fn sphere_4D_no_skeleton(subdivisions: usize) -> Mesh4D {
         .iter()
         .map(|&v| CpuVertex4D { position: v, normal: v })
         .collect();
-    let indeces = combinations_csize(0..vertices.len()).collect();//all possible tetrahedra
+    let indeces = combinations_constsize_range(0..vertices.len()).collect();//all possible tetrahedra
     let mut mesh = Mesh4D {
         vertices: vertices,
         indeces: indeces,

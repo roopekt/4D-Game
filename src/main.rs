@@ -8,6 +8,7 @@ pub mod renderer;
 pub mod info_screen;
 pub mod errors;
 pub mod clock;
+pub mod combinations;
 
 use glium::glutin;
 

@@ -2,20 +2,24 @@ use std::collections::{HashMap, HashSet};
 use glam::IVec3;
 use itertools::Itertools;
 use crate::combinations::combinations_constsize;
-use crate::errors::{assert_equal, assert_less, assert_more};
+use crate::errors::*;
 
 #[derive(Clone, Debug)]
 pub struct SampleCloud3D {
-    sample_map: HashMap<IVec3, f32>,//values of normalized_function
-    border_pairs: Vec<[IVec3; 2]>//pairs of neighboring points, that get different signs from normalized_function
+    pub sample_map: HashMap<IVec3, f32>,//values of normalized_function
+    pub border_pairs: Vec<BorderPair3D>//pairs of neighboring points, that get different signs from normalized_function
 }
 impl SampleCloud3D {
-    pub fn new(normalized_function: fn(IVec3) -> f32, negative_point: IVec3, positive_point: IVec3) -> Self {
+    pub fn new<F: Fn(IVec3) -> f32>(normalized_function: &F, negative_point: IVec3, positive_point: IVec3) -> Self {
         let relative_neighbor_sets = [0, 1, 2].map(|i| BorderPairRelativeNeighborSet::new(i));
+        let initial_border_pair = get_initial_border_pair_3D(normalized_function, negative_point, positive_point);
 
-        let mut sample_map = HashMap::<IVec3, f32>::new();
-        let mut all_border_pairs = HashSet::<BorderPair3D>::new();
-        let mut unprocessed_border_pairs = vec![get_initial_border_pair_3D(normalized_function, negative_point, positive_point)];
+        let mut sample_map = HashMap::from([
+            (initial_border_pair.A, normalized_function(initial_border_pair.A)),
+            (initial_border_pair.B, normalized_function(initial_border_pair.B))
+        ]);
+        let mut unprocessed_border_pairs = vec![initial_border_pair];
+        let mut all_border_pairs: HashSet<BorderPair3D> = unprocessed_border_pairs.iter().copied().collect();
 
         //depth first search
         while !unprocessed_border_pairs.is_empty() {
@@ -31,8 +35,8 @@ impl SampleCloud3D {
                     continue;
                 }
 
-                let A_is_positive = sample_map[&border_pair.A] > 0.0;
-                let B_is_positive = sample_map[&border_pair.B] > 0.0;
+                let A_is_positive = is_positive(sample_map[&border_pair.A]);
+                let B_is_positive = is_positive(sample_map[&border_pair.B]);
                 if A_is_positive != B_is_positive {
                     all_border_pairs.insert(border_pair);
                     unprocessed_border_pairs.push(border_pair);
@@ -42,17 +46,18 @@ impl SampleCloud3D {
 
         Self {
             sample_map,
-            border_pairs: all_border_pairs.iter().map(|&p| p.into()).collect()
+            border_pairs: all_border_pairs.iter().copied().collect()
         }
     }
 }
 
 //should always satisfy A[axis_index] < B[axis_index]
+//should always satisfy sign(normalized_function(A)) != sign(normalized_function(B))
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-struct BorderPair3D {
-    A: IVec3,
-    B: IVec3,
-    axis_index: usize//a line passing through A and B should be parallel to some axis
+pub struct BorderPair3D {
+    pub A: IVec3,
+    pub B: IVec3,
+    pub axis_index: usize//a line passing through A and B should be parallel to some axis
 }
 impl BorderPair3D {
     pub fn new(mut A: IVec3, mut B: IVec3) -> Self {
@@ -127,9 +132,9 @@ impl BorderPairRelativeNeighborSet {
     }
 }
 
-fn get_initial_border_pair_3D(normalized_function: fn(IVec3) -> f32, mut negative_point: IVec3, mut positive_point: IVec3) -> BorderPair3D {
-    assert_less!(normalized_function(negative_point), 0.0);
-    assert_more!(normalized_function(positive_point), 0.0);
+fn get_initial_border_pair_3D<F: Fn(IVec3) -> f32>(normalized_function: &F, mut negative_point: IVec3, mut positive_point: IVec3) -> BorderPair3D {
+    assert_false!(is_positive(normalized_function(negative_point)), format_args!("value: {}", normalized_function(negative_point)));
+    assert_true!( is_positive(normalized_function(positive_point)), format_args!("value: {}", normalized_function(positive_point)));
 
     //binary search
     while ivec3_manhattan_magnitude(positive_point - negative_point) > 1 {
@@ -144,8 +149,8 @@ fn get_initial_border_pair_3D(normalized_function: fn(IVec3) -> f32, mut negativ
         }
     }
 
-    assert_less!(normalized_function(negative_point), 0.0);
-    assert_more!(normalized_function(positive_point), 0.0);
+    assert_false!(is_positive(normalized_function(negative_point)), format_args!("value: {}", normalized_function(negative_point)));
+    assert_true!( is_positive(normalized_function(positive_point)), format_args!("value: {}", normalized_function(positive_point)));
 
     BorderPair3D::new(negative_point, positive_point)
 }
@@ -168,4 +173,8 @@ fn ivec3_midpoint(a: IVec3, b: IVec3) -> IVec3 {
 
 fn ivec3_manhattan_magnitude(vec: IVec3) -> i32 {
     vec.abs().to_array().iter().sum::<i32>()
+}
+
+fn is_positive(x: f32) -> bool {
+    x > 0.0
 }

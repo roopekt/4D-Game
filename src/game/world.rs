@@ -95,7 +95,8 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
         },
         0.05,
         Vec3::X * torus_major_radius,
-        Vec3::ZERO
+        Vec3::ZERO,
+        true
     );
     objects.push(RenderableObject3D {
         transform: Transform3D {

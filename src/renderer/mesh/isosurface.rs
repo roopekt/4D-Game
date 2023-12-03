@@ -3,11 +3,20 @@ mod sample_cloud;
 use glam::{Vec3, IVec3};
 use itertools::Itertools;
 use self::sample_cloud::SampleCloud3D;
-
 use super::{Mesh3D, primitives, vertex::CpuVertex3D};
 use indexmap::IndexMap;
 
-pub fn get_connected_isosurface_3D<F1, F2>(function: &F1, gradient: &F2, voxel_width: f32, negative_point: Vec3, positive_point: Vec3, use_newton_method: bool) -> Mesh3D
+pub fn get_connected_isosurface_3D<F1, F2>(function: &F1, gradient: &F2, voxel_width: f32, skeleton_voxel_width: f32, negative_point: Vec3, positive_point: Vec3, use_newton_method: bool) -> Mesh3D
+    where F1: Fn(Vec3) -> f32, F2: Fn(Vec3) -> Vec3
+{
+    let mut main_mesh = get_connected_isosurface_3D_no_skeleton(function, gradient,          voxel_width, negative_point, positive_point, use_newton_method);
+    let skeleton_mesh = get_connected_isosurface_3D_no_skeleton(function, gradient, skeleton_voxel_width, negative_point, positive_point, use_newton_method);
+
+    main_mesh.attach_skeleton(skeleton_mesh);
+    main_mesh
+}
+
+pub fn get_connected_isosurface_3D_no_skeleton<F1, F2>(function: &F1, gradient: &F2, voxel_width: f32, negative_point: Vec3, positive_point: Vec3, use_newton_method: bool) -> Mesh3D
     where F1: Fn(Vec3) -> f32, F2: Fn(Vec3) -> Vec3
 {
     let normalized_function = |normalized_coordinate: IVec3| {
@@ -43,7 +52,7 @@ pub fn get_connected_isosurface_3D<F1, F2>(function: &F1, gradient: &F2, voxel_w
             .collect_vec(),
         vertices: vertices.into_values().collect_vec(),
         skeleton_indeces: Vec::new()
-    }.with_full_skeleton()
+    }
 }
 
 fn get_vertex<F1, F2>(discrete_corner_vertex: IVec3, sample_cloud: &SampleCloud3D, function: &F1, gradient_func: &F2, voxel_width: f32, use_newton_method: bool) -> CpuVertex3D

@@ -92,3 +92,22 @@ impl Mesh4D {
         self
     }
 }
+
+impl Mesh3D {
+    pub fn attach_skeleton(&mut self, mut skeleton_source: Self) {
+        skeleton_source = skeleton_source.with_full_skeleton();
+        skeleton_source.indeces.clear();
+        
+        self.skeleton_indeces.clear();
+        *self += skeleton_source;
+    }
+}
+impl Mesh4D {
+    pub fn attach_skeleton(&mut self, mut skeleton_source: Self) {
+        skeleton_source = skeleton_source.with_full_skeleton();
+        skeleton_source.indeces.clear();
+        
+        self.skeleton_indeces.clear();
+        *self += skeleton_source;
+    }
+}

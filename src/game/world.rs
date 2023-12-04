@@ -2,7 +2,7 @@ use super::player::{Player3D, Player4D};
 use crate::global_data::GlobalData;
 use crate::renderer::mesh;
 use std::time::Instant;
-use glam::{Mat3, Vec3, Mat4, Vec4, Vec3Swizzles};
+use glam::{Mat3, Vec3, Mat4, Vec4};
 use std::vec::Vec;
 use super::transform::{Transform3D, Transform4D, rotation, switch_matrix3_columns, switch_matrix4_columns};
 use crate::renderer::renderable_object::{RenderableObject3D, RenderableObject4D};
@@ -80,18 +80,19 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
     let torus_minor_radius = 0.2;
     let torus = mesh::isosurface::get_connected_isosurface_3D(
         &|p| {
-            let a = p.length_squared() + torus_major_radius*torus_major_radius - torus_minor_radius*torus_minor_radius;
-            a*a - 4.0*torus_major_radius*torus_major_radius*(p.xy().length_squared())
+            //the closest point on the circle in the center of the torus
+            let circle_point = p
+                .reject_from(Vec3::Z)
+                .try_normalize().unwrap_or(Vec3::X)
+                * torus_major_radius;
+            circle_point.distance(p) - torus_minor_radius
         },
         &|p| {
-            let a = p.length_squared() - torus_minor_radius*torus_minor_radius;
-            let a_xy = 4.0 * (a - torus_major_radius*torus_major_radius);
-            let a_z  = 4.0 * (a + torus_major_radius*torus_major_radius);
-            Vec3::new(
-                p.x * a_xy,
-                p.y * a_xy,
-                p.z * a_z
-            )
+            let circle_point = p
+                .reject_from(Vec3::Z)
+                .try_normalize().unwrap_or(Vec3::X)
+                * torus_major_radius;
+            (p - circle_point).normalize_or_zero()
         },
         0.05,
         0.2,

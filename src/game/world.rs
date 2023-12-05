@@ -168,6 +168,40 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 0.0, 0.0) }
     });
 
+    //torus
+    let torus_major_radius = 0.5;
+    let torus_minor_radius = 0.2;
+    let torus = mesh::isosurface::get_connected_isosurface_4D(
+        &|p| {
+            //the closest point on the circle in the center of the torus
+            let circle_point = p
+                .reject_from(Vec4::W)
+                .try_normalize().unwrap_or(Vec4::X)
+                * torus_major_radius;
+            circle_point.distance(p) - torus_minor_radius
+        },
+        &|p| {
+            let circle_point = p
+                .reject_from(Vec4::W)
+                .try_normalize().unwrap_or(Vec4::X)
+                * torus_major_radius;
+            (p - circle_point).normalize_or_zero()
+        },
+        0.08,
+        0.5,
+        Vec4::X * torus_major_radius,
+        Vec4::ZERO,
+        true
+    );
+    objects.push(RenderableObject4D {
+        transform: Transform4D {
+            position: Vec4::new(0.0, 0.0, 3.0, 3.0),
+            ..Default::default()
+        }.into(),
+        mesh: torus.upload_static(display),
+        material: materials::SingleColorMaterial { albedo_color: Vec3::new(0.0, 1.0, 0.0) }
+    });
+
     const TESSERACT_COUNT: usize = 20;
     const SPHERE_COUNT: usize = 20;
     const SPAWN_RADIUS: f32 = 7.0;

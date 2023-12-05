@@ -73,13 +73,54 @@ pub fn get_connected_isosurface_4D_no_skeleton<F1, F2>(function: &F1, gradient: 
     let normalized_positive_point = (positive_point / voxel_width).round().as_ivec4();
     let sample_cloud = sample_cloud::SampleCloud4D::new(&normalized_function, normalized_negative_point, normalized_positive_point);
 
-    let relative_cubes = [0, 1, 2, 3].map(|axis_index| get_cube_4D_with_nth_axis_as_normal(axis_index));
+    let relative_cubes          = [0, 1, 2, 3].map(|axis_index| get_cube_4D_with_nth_axis_as_normal(axis_index, false));
+    let relative_cubes_mirrored = [0, 1, 2, 3].map(|axis_index| get_cube_4D_with_nth_axis_as_normal(axis_index, true));
 
     let mut vertices = IndexMap::<IVec4, CpuVertex4D>::new();
     let mut tetrahedra = Vec::<[IVec4; 4]>::new();
 
     for border_pair in &sample_cloud.border_pairs {
-        let (relative_vertices, relative_tetrahedra) = &relative_cubes[border_pair.axis_index];
+        /*
+        The surface of the mesh is built out of cubes, and adjacent cubes share a quadrilateral (a face).
+        While smoothing, the vertices of the quadrilateral are moved independently, which means that they
+        will not be on the same plane. This means that the surface of the quadrilateral is not uniquely
+        determined, as there are two ways to cut a quadrilateral into triangles. If two adjacent cubes
+        make the cut differently, the final mesh will have a visible hole. The below mirroring procedure
+        should make sure that the cut is always made the same way.
+
+        If smoothing was disabled, the vertices would lie on a square lattice. Each lattice point has
+        a parity value, which is either Y or N. The parity values form a 4D chess board pattern, where two
+        adjacent lattice points always have a different parity value. A quadrilateral is cut into triangles
+        by a single diagonal. If a vertex lies on a lattice point with a parity value of N, it shall not be
+        part of any diagonals. If the vertex has a parity value of Y, it shall instead be part of every
+        quadrilateral's diagonal that the vertex is part of.
+
+        Due to how a cube is cut into tetrahedra (see diagram: https://i.stack.imgur.com/kEkEA.gif),
+        if one vertex of a cube has the correct parity value, all of its vertices have a correct parity value.
+        One can see this by observing which vertices form the central tetrahedron of the cube, and remembering
+        that adjacent lattice points always have a different parity value.
+
+        The parity_flag variable represents the parity value of a single vertex (the one with biggest coordinates)
+        of the cube in question. I have not checked whether false corresponds to N or Y, but it shouldn't matter.
+        Depending on the value of parity_flag, a "normal" or a mirrored version of a cube is picked, such that
+        the diagonals of the cube's faces don't violate the parity value of the vertex the flag corresponds to.
+        If the parity value is correct for that vertex of the cube, it must be correct for the rest as well, as
+        seen earlier. Thus, this procedure makes sure that all cubes added to the mesh respect the parity values
+        of the lattice.
+
+        Consider a quadrilateral shared by two adjacent cubes. The parity value of each vertex is same from the
+        perspective of both cubes, as the parity value depends only on position. As adjacent lattice points always
+        have a different parity value, exactly two of the quadrilateral's four vertices have a parity value of Y.
+        The only legal way to cut the quadrilateral into triangles is to connect the two vertices with the value Y
+        by a diagonal. As there is only one way to do the cut, both cubes will cut the quadrilateral the same way,
+        leaving no holes.
+         */
+        let parity_flag = <[i32; 4]>::from(border_pair.A).iter()//is the number of odd components odd?
+            .map(|c| c.rem_euclid(2))
+            .sum::<i32>().rem_euclid(2) == 1;
+        let cube_source = if parity_flag { &relative_cubes } else { &relative_cubes_mirrored };
+
+        let (relative_vertices, relative_tetrahedra) = &cube_source[border_pair.axis_index];
 
         for relative_vertex in relative_vertices {
             let discrete_corner_vertex = *relative_vertex + border_pair.A;//the minimum coordinate corner of the cube in which the new vertex will be in
@@ -287,11 +328,13 @@ fn get_quad_3D_with_nth_axis_as_normal(axis_index: usize) -> (Vec<IVec3>, Vec<[I
 
     (vertices, triangles)
 }
-fn get_cube_4D_with_nth_axis_as_normal(axis_index: usize) -> (Vec<IVec4>, Vec<[IVec4; 4]>) {
-    let quad = primitives::cube_4D_discrete_vertices();
+fn get_cube_4D_with_nth_axis_as_normal(axis_index: usize, mirrored: bool) -> (Vec<IVec4>, Vec<[IVec4; 4]>) {
+    let cube = primitives::cube_4D_discrete_vertices();
     
-    let vertices = quad.0.iter()
-        .map(|corner2| corner2.map(-1, 0))
+    let (coord_A, coord_B) = if mirrored { (-1, 0) } else { (0, -1) };
+
+    let vertices = cube.0.iter()
+        .map(|corner2| corner2.map(coord_A, coord_B))
         .map(|array3| IVec4::new(array3[0], array3[1], array3[2],  0))
         .map(|mut vec_w_normal| {
             (vec_w_normal[axis_index], vec_w_normal.w) = (vec_w_normal.w, vec_w_normal[axis_index]);
@@ -299,7 +342,7 @@ fn get_cube_4D_with_nth_axis_as_normal(axis_index: usize) -> (Vec<IVec4>, Vec<[I
         })
         .collect_vec();
 
-    let tetrahedra = quad.1.iter()
+    let tetrahedra = cube.1.iter()
         .map(|vertex_indeces| vertex_indeces.map(|i| vertices[i]))
         .collect_vec();
 

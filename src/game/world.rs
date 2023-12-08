@@ -2,7 +2,7 @@ use super::player::{Player3D, Player4D};
 use crate::global_data::GlobalData;
 use crate::renderer::mesh;
 use std::time::Instant;
-use glam::{Mat3, Vec3, Mat4, Vec4};
+use glam::{Mat3, Vec3, Mat4, Vec4, swizzles::*, Vec2};
 use std::vec::Vec;
 use super::transform::{Transform3D, Transform4D, rotation, switch_matrix3_columns, switch_matrix4_columns};
 use crate::renderer::renderable_object::{RenderableObject3D, RenderableObject4D};
@@ -195,10 +195,37 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
     );
     objects.push(RenderableObject4D {
         transform: Transform4D {
-            position: Vec4::new(0.0, 0.0, 3.0, 3.0),
+            position: Vec4::new(0.0, -3.0, 3.0, 3.0),
             ..Default::default()
         }.into(),
         mesh: torus.upload_static(display),
+        material: materials::SingleColorMaterial { albedo_color: Vec3::new(0.0, 0.0, 1.0) }
+    });
+
+    //wavy torus
+    let wavy_torus = mesh::isosurface::get_connected_isosurface_4D(
+        &|p| {
+            let a = 30.0*p.xy().length() + 5.0*((20.0*p.x).sin() + (20.0*p.y).sin());
+            let b = 50.0*(p.zw().length() - 0.5).abs();
+            a + b - 10.0
+        },
+        &|p| {
+            let a = 30.0*p.xy().normalize() + 5.0*20.0*Vec2::new((20.0*p.x).cos(), (20.0*p.y).cos());
+            let b = 50.0*p.zw().normalize() * (p.zw().length() - 0.5).signum();
+            Vec4::new(a.x, a.y, b.x, b.y)
+        },
+        0.05,
+        0.5,
+        Vec4::Z * 0.5,
+        Vec4::X * 10.0,
+        true
+    );
+    objects.push(RenderableObject4D {
+        transform: Transform4D {
+            position: Vec4::new(0.0, 3.0, 3.0, 3.0),
+            ..Default::default()
+        }.into(),
+        mesh: wavy_torus.upload_static(display),
         material: materials::SingleColorMaterial { albedo_color: Vec3::new(0.0, 1.0, 0.0) }
     });
 

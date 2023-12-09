@@ -26,25 +26,29 @@ impl Multiverse {
 
 pub struct World3D {
     pub player: Player3D,
-    pub static_scene: Vec<RenderableObject3D<materials::SingleColorMaterial>>
+    pub static_scene: Vec<RenderableObject3D<materials::SingleColorMaterial>>,
+    pub floor: RenderableObject3D<materials::ChessboardMaterial>
 }
 impl World3D {
     pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
         Self {
             player: Player3D::new(global_data),
-            static_scene: get_static_scene_objects_3D(display)
+            static_scene: get_static_scene_objects_3D(display),
+            floor: get_floor_3D(display)
         }
     }
 }
 pub struct World4D {
     pub player: Player4D,
-    pub static_scene: Vec<RenderableObject4D<materials::SingleColorMaterial>>
+    pub static_scene: Vec<RenderableObject4D<materials::SingleColorMaterial>>,
+    pub floor: RenderableObject4D<materials::ChessboardMaterial>
 }
 impl World4D {
     pub fn new(global_data: &GlobalData, display: &glium::Display) -> Self {
         Self {
             player: Player4D::new(global_data),
-            static_scene: get_static_scene_objects_4D(display)
+            static_scene: get_static_scene_objects_4D(display),
+            floor: get_floor_4D(display)
         }
     }
 }
@@ -52,17 +56,6 @@ impl World4D {
 fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject3D<materials::SingleColorMaterial>> {
     let mut objects: Vec<RenderableObject3D<materials::SingleColorMaterial>> = Vec::new();
     let mut rng = SmallRng::from_entropy();
-
-    //floor
-    objects.push(RenderableObject3D {
-        transform: Transform3D {
-            scale: Vec3::splat(100.0),
-            orientation: switch_matrix3_columns(Mat3::IDENTITY, 1, 2),
-            ..Default::default()
-        }.into(),
-        mesh: mesh::primitives::quad_3D().upload_static(display),
-        material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
-    });
 
     //big cube
     objects.push(RenderableObject3D {
@@ -145,17 +138,6 @@ fn get_static_scene_objects_3D(display: &glium::Display) -> Vec<RenderableObject
 fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject4D<materials::SingleColorMaterial>> {
     let mut objects: Vec<RenderableObject4D<materials::SingleColorMaterial>> = Vec::new();
     let mut rng = SmallRng::from_entropy();
-
-    //floor
-    objects.push(RenderableObject4D {
-        transform: Transform4D {
-            scale: Vec4::splat(100.0),
-            orientation: switch_matrix4_columns(Mat4::IDENTITY, 2, 3),
-            ..Default::default()
-        }.into(),
-        mesh: mesh::primitives::cube_4D().upload_static(display),
-        material: materials::SingleColorMaterial { albedo_color: Vec3::new(1.0, 1.0, 1.0) }
-    });
 
     //big tesseract
     objects.push(RenderableObject4D {
@@ -261,4 +243,35 @@ fn get_static_scene_objects_4D(display: &glium::Display) -> Vec<RenderableObject
     }
 
     objects
+}
+
+fn get_floor_3D(display: &glium::Display) -> RenderableObject3D<materials::ChessboardMaterial> {
+    RenderableObject3D {
+        transform: Transform3D {
+            scale: Vec3::splat(100.0),
+            orientation: switch_matrix3_columns(Mat3::IDENTITY, 1, 2),
+            ..Default::default()
+        }.into(),
+        mesh: mesh::primitives::quad_3D().upload_static(display),
+        material: materials::ChessboardMaterial {
+            color_A: Vec3::new(1.0, 1.0, 1.0),
+            color_B: Vec3::new(0.8, 0.8, 0.8),
+            square_width: 0.5
+        }
+    }
+}
+fn get_floor_4D(display: &glium::Display) -> RenderableObject4D<materials::ChessboardMaterial> {
+    RenderableObject4D {
+        transform: Transform4D {
+            scale: Vec4::splat(100.0),
+            orientation: switch_matrix4_columns(Mat4::IDENTITY, 2, 3),
+            ..Default::default()
+        }.into(),
+        mesh: mesh::primitives::cube_4D().upload_static(display),
+        material: materials::ChessboardMaterial {
+            color_A: Vec3::new(1.0, 1.0, 1.0),
+            color_B: Vec3::new(0.8, 0.8, 0.8),
+            square_width: 0.5
+        }
+    }
 }

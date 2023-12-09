@@ -185,6 +185,8 @@ fn render_objects_simple_visual_mode_3D<A: glium::Surface, B: glium::Surface>(wo
     for object in &world.static_scene {
         object.render(&mut targets, context);
     }
+
+    world.floor.render(&mut targets, context);
 }
 fn render_objects_simple_visual_mode_4D<A: glium::Surface, B: glium::Surface>(world: &World4D, surface_target: &mut A, skeleton_target: &mut B, context: &ObjectDrawContext4D) {
     let mut targets = ObjectDrawTargets { surface_target, skeleton_target };
@@ -192,4 +194,6 @@ fn render_objects_simple_visual_mode_4D<A: glium::Surface, B: glium::Surface>(wo
     for object in &world.static_scene {
         object.render(&mut targets, context);
     }
+
+    world.floor.render(&mut targets, context);
 }

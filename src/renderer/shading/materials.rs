@@ -1,8 +1,10 @@
 use super::abstract_material::{Material, ShaderProgramId, ShaderProgramIdGroup, ProgramDescriptor, ProgramDescriptorGroup, implement_material_draw, any_uniforms_storage};
 use glam::Vec3;
 
-pub const PROGRAM_DESCRIPTOR_GROUPS: [ProgramDescriptorGroup; 3] = [
+const PROGRAM_DESCRIPTOR_GROUP_COUNT: usize = 4;
+pub const PROGRAM_DESCRIPTOR_GROUPS: [ProgramDescriptorGroup; PROGRAM_DESCRIPTOR_GROUP_COUNT] = [
     SingleColorMaterial::PROGRAM_DESCRIPTORS,
+    ChessboardMaterial::PROGRAM_DESCRIPTORS,
     BlitMaterial::PROGRAM_DESCRIPTORS,
     SingleColorScreenSpaceMaterial::PROGRAM_DESCRIPTORS
 ];
@@ -34,6 +36,41 @@ impl SingleColorMaterial {
     fn get_uniforms(&self) -> any_uniforms_storage!() {
         glium::uniform! {
             albedo: self.albedo_color.to_array()
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct ChessboardMaterial {
+    pub color_A: Vec3,
+    pub color_B: Vec3,
+    pub square_width: f32
+}
+impl Material for ChessboardMaterial {
+    const PROGRAM_DESCRIPTORS: ProgramDescriptorGroup = ProgramDescriptorGroup {
+        normal_3D: ProgramDescriptor::new(
+            "3D/pre_fragment.vert", "3D/chessboard.frag"),
+        normal_3D_skeleton: ProgramDescriptor::new(
+            "3D/pre_fragment.vert", "3D/chessboard_skeleton.frag"),
+        degenerate_3D: ProgramDescriptor::new_with_geometry(
+            "3D/pre_geometry.vert", "3D/chessboard.frag", "3D/sliced.geom"),
+        degenerate_3D_skeleton: ProgramDescriptor::new_with_geometry(
+            "3D/pre_geometry.vert", "3D/chessboard_skeleton.frag", "3D/skeleton.geom"),
+        degenerate_4D: ProgramDescriptor::new_with_geometry(
+            "4D/pre_geometry.vert", "4D/chessboard.frag", "4D/sliced.geom"),
+        degenerate_4D_skeleton: ProgramDescriptor::new(
+            "4D/pre_fragment.vert", "4D/chessboard_skeleton.frag")
+    };
+    
+    const PROGRAM_IDS: ShaderProgramIdGroup = get_program_id_container::<Self>();
+    implement_material_draw!(Self::get_uniforms);
+}
+impl ChessboardMaterial {
+    fn get_uniforms(&self) -> any_uniforms_storage!() {
+        glium::uniform! {
+            albedo_A: self.color_A.to_array(),
+            albedo_B: self.color_B.to_array(),
+            square_width: self.square_width
         }
     }
 }
@@ -76,8 +113,8 @@ impl SingleColorScreenSpaceMaterial {
 
 
 const PROGRAM_DESCRIPTORS_PER_GROUP: usize = 6;
-pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; 3 * PROGRAM_DESCRIPTORS_PER_GROUP] = {
-    let mut descriptors = [ProgramDescriptor::new("<null>", "<null>"); 3 * PROGRAM_DESCRIPTORS_PER_GROUP];
+pub const PROGRAM_DESCRIPTORS: [ProgramDescriptor; PROGRAM_DESCRIPTOR_GROUP_COUNT * PROGRAM_DESCRIPTORS_PER_GROUP] = {
+    let mut descriptors = [ProgramDescriptor::new("<null>", "<null>"); PROGRAM_DESCRIPTOR_GROUP_COUNT * PROGRAM_DESCRIPTORS_PER_GROUP];
     let mut i = 0;
     while i < PROGRAM_DESCRIPTOR_GROUPS.len() {
         descriptors[i * PROGRAM_DESCRIPTORS_PER_GROUP + 0] = PROGRAM_DESCRIPTOR_GROUPS[i].normal_3D;

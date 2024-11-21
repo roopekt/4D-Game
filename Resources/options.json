@@ -9,7 +9,7 @@
         "mouse_sensitivity": 0.007
     },
     "info_screen": {
-        "font_name": "Source Code Pro",
+        "font_name": "Noto Mono",
         "font_size": 16,
         "position": [5, 5],
         "relative_outline_size": 0.07,

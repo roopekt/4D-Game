@@ -7,21 +7,21 @@ edition = "2021"
 
 [dependencies]
 glium = "0.32.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-glam = "0.24.1"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.134"
+glam = "0.29.2"
 rand = { version = "0.8.5", features = [ "small_rng" ] }
 std140 = "0.2.6"
-const-str = "0.5.4"
+const-str = "0.5.7"
 glium-glyph = "0.14.0"
-rust-fontconfig = "0.1.6"
-ouroboros = "0.15.6"
-spin_sleep = "1.1.1"
-regex = "1.9.1"
-once_cell = "1.18.0"
-itertools = "0.11.0"
-num = "0.4.1"
-indexmap = "2.0.0"
+rust-fontconfig = "0.1.13"
+ouroboros = "0.18.4"
+spin_sleep = "1.3.0"
+regex = "1.11.1"
+once_cell = "1.20.2"
+itertools = "0.14.0"
+num = "0.4.3"
+indexmap = "2.7.0"
 
 [build-dependencies]
-cc = "1.0"
+cc = "1.2.6"

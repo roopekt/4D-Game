@@ -109,9 +109,6 @@ impl Mesh4D {
             let mut mid_octahedron_tetrahedralization_edges: HashSet<EdgeIndeces> = all_edges(&mid_octahedron_indeces).collect();
             mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_A);
             mid_octahedron_tetrahedralization_edges.remove(&mid_octahedron_diagonal_B);
-            if mid_octahedron_tetrahedralization_edges.len() == 14 {
-                println!("shit");
-            }
             assert_equal!(mid_octahedron_tetrahedralization_edges.len(), 12 + 1);//should now have all outer edges, and one diagonal
 
             //add mid octahedron tetrahedra
